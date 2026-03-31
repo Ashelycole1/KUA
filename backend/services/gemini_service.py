@@ -1,12 +1,15 @@
 import os
-import google.generativeai as genai
+import base64
+from google import genai
+from google.genai import types
 from dotenv import load_dotenv
 
 load_dotenv()
 
-genai.configure(api_key=os.getenv("GEMINI_API_KEY", ""))
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY", ""))
 
 MODEL = "gemini-2.5-flash"
+IMAGEN_MODEL = "imagen-3.0-generate-001"
 
 SYSTEM_PROMPT = """You are a pan-African marketing copywriter for small mobile-first merchants.
 Generate campaign copy that feels authentic, local, and compelling for the merchant's target audience.
@@ -23,11 +26,6 @@ async def generate_campaign_text(
     brand_keywords: str = "",
 ) -> dict:
     """Call Gemini 2.5 Flash and return 4 campaign tone variants."""
-    model = genai.GenerativeModel(
-        MODEL,
-        system_instruction=SYSTEM_PROMPT,
-        generation_config={"response_mime_type": "application/json"}
-    )
 
     context = ""
     if biz_name:
@@ -47,11 +45,17 @@ Generate 4 campaign variations as JSON:
 - sms: under 160 chars, direct call-to-action"""
 
     try:
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model=MODEL,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                system_instruction=SYSTEM_PROMPT,
+                response_mime_type="application/json",
+            ),
+        )
         import json
         return json.loads(response.text.strip())
     except Exception as e:
-        # Graceful fallback
         print(f"Gemini API Error: {e}")
         return {
             "professional": f"We are pleased to offer {text}. Contact us today for orders.",
@@ -62,28 +66,19 @@ Generate 4 campaign variations as JSON:
 
 
 async def generate_flyer(prompt: str) -> bytes | None:
-    """Trigger Google Imagen to generate a 1024x1024 marketing asset."""
+    """Trigger Google Imagen 3 to generate a 1024x1024 marketing asset."""
     try:
-        # Note: Depending on the SDK structure, adjust the model name (e.g., imagen-3.0-generate-001)
-        # We rely on the raw REST endpoint or SDK wrapper if present.
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key={os.getenv('GEMINI_API_KEY', '')}"
-        
-        # We fall back to standard HTTP call instead of raw google-generativeai SDK to guarantee it works without version crashes.
-        import requests
-        headers = {"Content-Type": "application/json"}
-        payload = {
-            "instances": [{"prompt": f"A highly aesthetic, professional promotional flyer for a local African business: {prompt}"}],
-            "parameters": {"sampleCount": 1, "aspectRatio": "1:1"}
-        }
-        res = requests.post(url, headers=headers, json=payload)
-        res.raise_for_status()
-        
-        data = res.json()
-        if "predictions" in data and len(data["predictions"]) > 0:
-            import base64
-            img_b64 = data["predictions"][0].get("bytesBase64Encoded", "")
-            if img_b64:
-                return base64.b64decode(img_b64)
+        response = client.models.generate_images(
+            model=IMAGEN_MODEL,
+            prompt=f"A highly aesthetic, professional promotional flyer for a local African business: {prompt}",
+            config=types.GenerateImageConfig(
+                number_of_images=1,
+                output_mime_type="image/jpeg",
+                aspect_ratio="1:1",
+            ),
+        )
+        if response.generated_images:
+            return response.generated_images[0].image.image_bytes
         return None
     except Exception as e:
         print(f"Imagen Error: {e}")
@@ -92,14 +87,17 @@ async def generate_flyer(prompt: str) -> bytes | None:
 
 async def generate_campaign_from_image(image_bytes: bytes, mime_type: str) -> str:
     """Use Gemini vision to extract product info from an image."""
-    model = genai.GenerativeModel(MODEL)
-    import google.generativeai as genai_img
-
-    image_part = {"mime_type": mime_type, "data": image_bytes}
-    prompt = (
-        "This is a photo from a Kenyan market vendor. "
-        "Extract: product name, price if visible, and any phone numbers. "
-        "Return a single descriptive sentence suitable for a marketing campaign."
-    )
-    response = model.generate_content([prompt, image_part])
-    return response.text.strip()
+    try:
+        response = client.models.generate_content(
+            model=MODEL,
+            contents=[
+                types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
+                "This is a photo from a Kenyan market vendor. "
+                "Extract: product name, price if visible, and any phone numbers. "
+                "Return a single descriptive sentence suitable for a marketing campaign.",
+            ],
+        )
+        return response.text.strip()
+    except Exception as e:
+        print(f"Vision Error: {e}")
+        return ""
