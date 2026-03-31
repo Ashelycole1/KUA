@@ -1289,18 +1289,28 @@
 
         // ===================== INIT =====================
         async function init() {
+            // Render the landing page and start observers immediately
             renderLanding();
-            await Auth.load();
             syncUI();
             setTimeout(() => document.querySelectorAll('[data-ob]').forEach(el => obs.observe(el)), 100);
 
-            // Re-sync UI on Clerk session changes
-            window.Clerk.addListener(({ session }) => {
-                syncUI();
-                if (curPage === 'dash') renderDash();
-            });
+            // Load Clerk in the background with a 5s timeout fallback
+            const clerkTimeout = new Promise(resolve => setTimeout(resolve, 5000));
+            await Promise.race([Auth.load(), clerkTimeout]);
+
+            // Sync UI again now that Clerk may be ready
+            syncUI();
+
+            // Listen for future Clerk session changes
+            if (window.Clerk && window.Clerk.addListener) {
+                window.Clerk.addListener(() => {
+                    syncUI();
+                    if (curPage === 'dash') renderDash();
+                });
+            }
         }
         document.addEventListener('DOMContentLoaded', init);
+
     </script>
 </body>
 
