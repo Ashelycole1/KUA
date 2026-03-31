@@ -995,20 +995,38 @@
 
         // ===================== BACKEND =====================
         const DB = { g(k) { try { return JSON.parse(localStorage.getItem('k_' + k)) } catch { return null } }, s(k, v) { localStorage.setItem('k_' + k, JSON.stringify(v)) }, r(k) { localStorage.removeItem('k_' + k) } };
+
+        // Start loading Clerk immediately — store as a global promise
+        window.__clerkReady = (function() {
+            return new Promise((resolve) => {
+                function tryLoad() {
+                    if (window.Clerk) {
+                        window.Clerk.load({
+                            publishableKey: 'pk_test_aW50ZW50LWpvZXktNTQuY2xlcmsuYWNjb3VudHMuZGV2JA'
+                        }).then(() => resolve(window.Clerk)).catch(() => resolve(null));
+                    } else {
+                        setTimeout(tryLoad, 50);
+                    }
+                }
+                tryLoad();
+            });
+        })();
+
         const Auth = {
-            async load() {
-                return new Promise((resolve) => {
-                    const check = setInterval(() => {
-                        if (window.Clerk && window.Clerk.isReady()) {
-                            clearInterval(check);
-                            resolve(window.Clerk);
-                        }
-                    }, 100);
-                });
+            load() { return window.__clerkReady; },
+            async up() {
+                const clerk = await window.__clerkReady;
+                if (clerk) clerk.openSignUp();
+                else toast('Authentication not available. Please refresh and try again.');
             },
-            up() { window.Clerk.openSignUp() },
-            in() { window.Clerk.openSignIn() },
-            out() { window.Clerk.signOut(() => { syncUI(); goHome(); toast('Logged out.'); }) },
+            async in() {
+                const clerk = await window.__clerkReady;
+                if (clerk) clerk.openSignIn();
+                else toast('Authentication not available. Please refresh and try again.');
+            },
+            out() {
+                if (window.Clerk) window.Clerk.signOut().then(() => { syncUI(); goHome(); toast('Logged out.'); });
+            },
             get() { 
                 if (!window.Clerk || !window.Clerk.user) return null;
                 const u = window.Clerk.user;
