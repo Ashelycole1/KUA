@@ -21,6 +21,8 @@ interface KuaContextType {
   toastMsg: string
   toastVisible: boolean
   syncUser: (details: Partial<User>) => Promise<void>
+  notifications: any[]
+  addNotification: (n: any) => void
 }
 
 const defaultUser: User = {
@@ -41,6 +43,8 @@ const KuaCtx = createContext<KuaContextType>({
   toastMsg: '',
   toastVisible: false,
   syncUser: async () => {},
+  notifications: [],
+  addNotification: () => {},
 })
 
 export function KuaProvider({ children }: { children: ReactNode }) {
@@ -48,6 +52,7 @@ export function KuaProvider({ children }: { children: ReactNode }) {
   const [isHydrated, setIsHydrated] = useState(false)
   const [toastMsg, setToastMsg] = useState('')
   const [toastVisible, setToastVisible] = useState(false)
+  const [notifications, setNotifications] = useState<any[]>([])
 
   useEffect(() => {
     try {
@@ -65,6 +70,10 @@ export function KuaProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('kua_user', JSON.stringify(next))
       return next
     })
+  }, [])
+
+  const addNotification = useCallback((n: any) => {
+    setNotifications(prev => [{ ...n, id: Date.now(), time: 'Just now' }, ...prev].slice(0, 5))
   }, [])
 
   const syncUser = useCallback(async (details: Partial<User>) => {
@@ -99,7 +108,7 @@ export function KuaProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <KuaCtx.Provider value={{ user, setUser, isHydrated, toast, toastMsg, toastVisible, syncUser }}>
+    <KuaCtx.Provider value={{ user, setUser, isHydrated, toast, toastMsg, toastVisible, syncUser, notifications, addNotification }}>
       {children}
       {/* Global toast */}
       <div

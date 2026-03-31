@@ -7,11 +7,13 @@ import WalletHeader from './WalletHeader'
 import CampaignStudio from './CampaignStudio'
 import BroadcastSMS from './BroadcastSMS'
 import HistoryTab from './HistoryTab'
+import SettingsTab from './SettingsTab'
+import NotificationOverlay from './NotificationOverlay'
 import { useKua } from './KuaProvider'
 import { formatCurrency } from '@/lib/currency'
 import { cn } from '@/lib/utils'
 
-type Tab = 'home' | 'studio' | 'broadcast' | 'history'
+type Tab = 'home' | 'studio' | 'broadcast' | 'history' | 'settings'
 
 const NAV = [
   { id: 'home' as Tab,      label: 'Home',      icon: HomeIcon },
@@ -21,8 +23,9 @@ const NAV = [
 ]
 
 export default function MainApp() {
-  const { user, setUser, toast, countryData } = useKua()
+  const { user, setUser, toast, countryData, notifications } = useKua()
   const [tab, setTab] = useState<Tab>('home')
+  const [isNotifOpen, setIsNotifOpen] = useState(false)
 
   function handleTopUp() {
     toast('Payment prompt sent to device…')
@@ -64,7 +67,13 @@ export default function MainApp() {
 
       <div className="h-[1px] bg-white/5 w-full my-6" />
 
-      <button className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-textMuted hover:text-white hover:bg-white/5 font-bold text-[14px] text-left">
+      <button 
+        onClick={() => setTab('settings')}
+        className={cn(
+          "flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-bold text-[14px] text-left",
+          tab === 'settings' ? "text-primary bg-primary/10 border border-primary/20" : "text-textMuted hover:text-white hover:bg-white/5"
+        )}
+      >
         <Settings size={18} />
         Settings
       </button>
@@ -113,13 +122,17 @@ export default function MainApp() {
       <div className="flex-1 flex flex-col relative w-full h-full min-h-screen pt-4 md:pt-10">
         
         {/* Desktop Header row mapping notifications */}
-        <div className="hidden md:flex justify-end px-12 pb-6">
-          <button className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white/5 border border-white/10 relative transition-all hover:bg-white/10">
-            <Bell size={20} className="text-textSecondary" />
-            {user.credits <= 2 && (
+        <div className="hidden md:flex justify-end px-12 pb-6 relative">
+          <button 
+            onClick={() => setIsNotifOpen(!isNotifOpen)}
+            className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white/5 border border-white/10 relative transition-all hover:bg-white/10"
+          >
+            <Bell size={20} className={isNotifOpen ? "text-primary" : "text-textSecondary"} />
+            {(user.credits <= 2 || notifications.length > 0) && (
               <span className="absolute top-2.5 right-2.5 w-3 h-3 rounded-full bg-secondary border-2 border-background" />
             )}
           </button>
+          <NotificationOverlay isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
         </div>
 
         <div className="md:max-w-3xl md:mx-auto w-full px-0 md:px-12 flex flex-col flex-1 pb-32 md:pb-12">
@@ -203,6 +216,7 @@ export default function MainApp() {
               {tab === 'studio'    && <CampaignStudio />}
               {tab === 'broadcast' && <BroadcastSMS />}
               {tab === 'history'   && <HistoryTab />}
+              {tab === 'settings'  && <SettingsTab />}
             </motion.div>
           </AnimatePresence>
         </div>
