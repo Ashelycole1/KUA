@@ -1054,8 +1054,16 @@
         };
 
         const Prog = {
-            init(uid) { if (!DB.g('pr_' + uid)) { const p = {}; MODS.forEach(m => { p[m.id] = { done: false, qs: null, qa: 0 } }); DB.s('pr_' + uid, p) } },
-            get(uid) { return DB.g('pr_' + uid) || {} },
+            get(uid) { 
+                let p = DB.g('pr_' + uid);
+                let changed = false;
+                if (!p) { p = {}; changed = true; }
+                MODS.forEach(m => { 
+                    if (!p[m.id]) { p[m.id] = { done: false, qs: null, qa: 0 }; changed = true; }
+                });
+                if (changed) DB.s('pr_' + uid, p);
+                return p;
+            },
             done(uid, mid) { const p = Prog.get(uid); if (p[mid]) { p[mid].done = true; DB.s('pr_' + uid, p); Ana.t('mod_done', { mid }) } },
             quiz(uid, mid, sc) { const p = Prog.get(uid); if (p[mid]) { p[mid].qs = Math.max(p[mid].qs || 0, sc); p[mid].qa = (p[mid].qa || 0) + 1; DB.s('pr_' + uid, p) } },
             cnt(uid) { return Object.values(Prog.get(uid)).filter(v => v.done).length },
