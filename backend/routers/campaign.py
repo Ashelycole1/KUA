@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from pydantic import BaseModel
 from typing import Optional
 
-from services import gemini_service, docai_service
+from services import gemini_service, docai_service, storage_service
 from db import supabase_client
 
 router = APIRouter(prefix="", tags=["campaign"])
@@ -33,7 +33,7 @@ async def generate_campaign(req: CampaignRequest):
     if phone:
         user = supabase_client.get_user(phone)
         if user and user["credit_balance"] <= 0:
-            raise HTTPException(status_code=403, detail="Insufficient credits. Top up 100/- via M-Pesa.")
+            raise HTTPException(status_code=403, detail="Insufficient credits. Please top up your wallet via the gateway.")
     
     input_text = req.text or "General product promotion"
 
@@ -53,12 +53,18 @@ async def generate_campaign(req: CampaignRequest):
         if user:
             credits_remaining = user["credit_balance"]
 
+    # ── Imagen Generation & Upload ──
+    flyer_bytes = await gemini_service.generate_flyer(input_text)
+    flyer_url = None
+    if flyer_bytes:
+        flyer_url = storage_service.upload_flyer(flyer_bytes, phone)
+
     return CampaignResponse(
         professional=variants.get("professional", ""),
         hype=variants.get("hype", ""),
         sheng=variants.get("sheng", ""),
         sms=variants.get("sms", ""),
-        flyer_url=None,          # Imagen integration adds this next
+        flyer_url=flyer_url,
         credits_remaining=credits_remaining,
     )
 
