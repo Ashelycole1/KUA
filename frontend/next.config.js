@@ -7,8 +7,11 @@ const withPWA = require('next-pwa')({
 })
 
 const nextConfig = {
+  output: 'export',
+  distDir: 'out',
+  basePath: '/KUA',
   images: {
-    domains: ['supabase.co', 'storage.googleapis.com'],
+    unoptimized: true,
   },
 }
 
