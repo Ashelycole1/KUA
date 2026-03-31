@@ -12,9 +12,8 @@
     <script>
         tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] }, colors: { brand: { 50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4', 300: '#5eead4', 400: '#2dd4bf', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e', 800: '#115e59', 900: '#134e4a' } } } } }
     </script>
-    <script async crossorigin="anonymous"
-        data-clerk-publishable-key="pk_test_aW50ZW50LWpvZXktNTQuY2xlcmsuYWNjb3VudHMuZGV2JA"
-        src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js" type="text/javascript"></script>
+    <script async crossorigin="anonymous" data-clerk-publishable-key="pk_test_aW50ZW50LWpvZXktNTQuY2xlcmsuYWNjb3VudHMuZGV2JA"
+        src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@4/dist/clerk.browser.js" type="text/javascript"></script>
 
     <style>
         * {
@@ -347,22 +346,6 @@
         <span id="toast-msg"></span>
     </div>
 
-    <!-- Auth placeholder -->
-    <div id="auth-modal" class="mo" onclick="if(event.target===this)closeAuth()">
-        <div class="mc bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden relative">
-            <button onclick="closeAuth()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 z-10 p-2">
-                <iconify-icon icon="lucide:x" width="20"></iconify-icon>
-            </button>
-            <div id="clerk-auth-container" class="min-h-[400px] flex items-center justify-center">
-                <div id="auth-loading" class="flex flex-col items-center gap-4">
-                    <div class="w-12 h-12 rounded-full bg-brand-50 flex items-center justify-center">
-                        <iconify-icon icon="lucide:sparkles" width="24" class="text-brand-600"></iconify-icon>
-                    </div>
-                    <p class="text-slate-500 text-sm">Loading Kua Auth...</p>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Module Modal -->
     <div id="mod-modal" class="mo" onclick="if(event.target===this)closeMod()">
@@ -1007,16 +990,18 @@
             return new Promise((resolve) => {
                 function tryLoad() {
                     if (window.Clerk) {
-                        console.log('Kua Auth: window.Clerk found, calling .load()...');
-                        window.Clerk.load({
-                            publishableKey: 'pk_test_aW50ZW50LWpvZXktNTQuY2xlcmsuYWNjb3VudHMuZGV2JA'
-                        }).then(() => {
-                            console.log('Kua Auth: Clerk.load() resolved successfully.');
-                            resolve(window.Clerk);
-                        }).catch((err) => {
-                            console.error('Kua Auth: Clerk.load() failed:', err);
+                        try {
+                            window.Clerk.load().then(() => {
+                                console.log('Kua Auth: clerkInstance.load() resolved successfully.');
+                                resolve(window.Clerk);
+                            }).catch((err) => {
+                                console.error('Kua Auth: clerkInstance.load() failed:', err);
+                                resolve(null);
+                            });
+                        } catch(e) {
+                            console.error('Kua Auth: init error:', e);
                             resolve(null);
-                        });
+                        }
                     } else {
                         setTimeout(tryLoad, 50);
                     }
@@ -1028,14 +1013,10 @@
         const Auth = {
             load() { return window.__clerkReady; },
             async up() {
-                console.log('Kua Auth: Auth.up() called.');
-                document.getElementById('auth-modal').classList.add('on');
+                console.log('Kua Auth: Auth.up() called. Opening native Clerk modal.');
                 const clerk = await window.__clerkReady;
                 if (clerk) {
-                    const container = document.getElementById('clerk-auth-container');
-                    clerk.unmountSignUp(container);
-                    clerk.unmountSignIn(container);
-                    clerk.mountSignUp(container, {
+                    clerk.openSignUp({
                         afterSignUpUrl: window.location.href,
                         afterSignInUrl: window.location.href
                     });
@@ -1044,14 +1025,10 @@
                 }
             },
             async in() {
-                console.log('Kua Auth: Auth.in() called.');
-                document.getElementById('auth-modal').classList.add('on');
+                console.log('Kua Auth: Auth.in() called. Opening native Clerk modal.');
                 const clerk = await window.__clerkReady;
                 if (clerk) {
-                    const container = document.getElementById('clerk-auth-container');
-                    clerk.unmountSignIn(container);
-                    clerk.unmountSignUp(container);
-                    clerk.mountSignIn(container, {
+                    clerk.openSignIn({
                         afterSignUpUrl: window.location.href,
                         afterSignInUrl: window.location.href
                     });
@@ -1136,7 +1113,6 @@
         }
         function closeAuth() {
             // Clerk handles its own modal closing
-            document.getElementById('auth-modal').classList.remove('on');
         }
         function doSignup(e) { e.preventDefault(); Auth.up(); }
         function doLogin(e) { e.preventDefault(); Auth.in(); }
