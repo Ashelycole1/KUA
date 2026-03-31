@@ -1135,6 +1135,7 @@
             nl.innerHTML = ''; nr.innerHTML = ''; ml.innerHTML = '';
 
             if (curPage === 'land') {
+                renderLandMods(); // Update module progress dynamically on landing page
                 ['The 4 Ps|four-ps', 'AIDA Funnel|aida-funnel', 'Modules|modules', 'Pricing|pricing'].forEach(t => {
                     const [a, id] = t.split('|');
                     const b = document.createElement('button'); b.className = 'nav-lk text-sm text-slate-600 hover:text-brand-600 transition-colors font-medium'; b.textContent = a; b.onclick = () => scrollToEl(id); nl.appendChild(b);
@@ -1172,6 +1173,36 @@
         function toggleMob() { mobOpen = !mobOpen; document.getElementById('mob-menu').classList.toggle('hidden', !mobOpen); document.getElementById('mob-ico').setAttribute('icon', mobOpen ? 'lucide:x' : 'lucide:menu') }
         function closeMob() { mobOpen = false; document.getElementById('mob-menu').classList.add('hidden'); document.getElementById('mob-ico').setAttribute('icon', 'lucide:menu') }
 
+        // ===================== RENDER LAND MODS =====================
+        function renderLandMods(animate = false) {
+            const u = Auth.get(), pr = u ? Prog.get(u.id) : {};
+            const isObserved = !animate && document.getElementById('land-mods').children.length > 0 && document.getElementById('land-mods').children[0].classList.contains('obs-v');
+            const useAnimate = animate && !isObserved;
+            
+            rn('land-mods', MODS.slice(0, 9).map((m, i) => {
+                const last = i === 8;
+                const mp = pr[m.id] || {};
+                const lk = u ? (!m.free && u.plan === 'free') : !m.free;
+                const clickFn = lk ? (u ? "doUpgrade('pro')" : "openAuth('signup')") : `openMod('${m.id}')`;
+                return `<div ${!last ? `onclick="${clickFn}"` : ''} class="${useAnimate ? 'obs-h' : 'obs-v'} ${!last ? 'cursor-pointer hover:border-brand-300 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)]' : ''} ch group bg-white border ${mp.done ? 'border-brand-300 bg-gradient-to-br from-brand-50/50 to-white' : 'border-slate-200'} rounded-2xl p-6 ${last ? 'relative overflow-hidden cursor-default' : ''} transition-all duration-300" ${useAnimate ? `data-ob style="animation-delay:${.05 + i * .05}s"` : ''}>
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-xs font-bold flex items-center gap-1.5 ${mp.done ? 'text-brand-700 bg-brand-100' : (m.free ? 'text-brand-600 bg-brand-50' : 'text-slate-600 bg-slate-100')} px-2.5 py-1 rounded-full transition-colors">
+                            ${mp.done ? '<iconify-icon icon="lucide:check-circle" width="14"></iconify-icon>' : ''} Module ${String(m.n).padStart(2, '0')}
+                        </span>
+                        <span class="text-slate-400 text-xs flex items-center gap-1.5">
+                            ${lk ? '<iconify-icon icon="lucide:lock" width="12"></iconify-icon>' : ''} ${m.time}
+                        </span>
+                    </div>
+                    <h3 class="font-semibold mb-2">${m.title}</h3>
+                    <p class="text-slate-500 text-sm leading-relaxed">${m.content.replace(/<[^>]*>/g, '').substring(0, 100)}...</p>
+                    ${last ? `<div class="absolute inset-0 bg-gradient-to-br from-brand-50 to-white pointer-events-none"></div><div class="relative mt-4"><button onclick="goCur()" class="flex items-center gap-2 text-brand-600 text-sm font-medium hover:text-brand-700">Unlock all <iconify-icon icon="lucide:arrow-right" width="14"></iconify-icon></button></div>` 
+                    : `<div class="mt-4 flex items-center gap-2 ${mp.done ? 'text-brand-600 opacity-100' : 'text-brand-600 opacity-0 group-hover:opacity-100'} text-sm font-medium transition-opacity duration-300">
+                        ${mp.done ? 'Review module' : (lk ? 'Unlock module' : 'Start learning')} <iconify-icon icon="lucide:arrow-right" width="14"></iconify-icon>
+                       </div>`}
+                </div>`;
+            }).join(''));
+        }
+
         // ===================== RENDER LANDING =====================
         function renderLanding() {
             // 4 Ps
@@ -1183,10 +1214,7 @@
             // Stats
             rn('stats-grid', STATS.map((s, i) => `<div class="obs-h text-center" data-ob style="animation-delay:${.1 + i * .1}s"><p class="text-3xl sm:text-4xl font-bold ${s.c}" data-ct="${s.n}" ${s.dec ? 'data-dec="1"' : ''}>0</p><p class="text-slate-500 text-sm mt-1">${s.lb}</p></div>`).join(''));
             // Landing modules
-            rn('land-mods', MODS.slice(0, 9).map((m, i) => {
-                const last = i === 8;
-                return `<div class="obs-h ch group bg-white border border-slate-200 rounded-2xl p-6 ${last ? 'relative overflow-hidden' : ''}" data-ob style="animation-delay:${.05 + i * .05}s"><div class="flex items-center justify-between mb-4"><span class="text-xs font-bold ${m.free ? 'text-brand-600 bg-brand-50' : 'text-slate-600 bg-slate-100'} px-2.5 py-1 rounded-full">Module ${String(m.n).padStart(2, '0')}</span><span class="text-slate-400 text-xs">${m.time}</span></div><h3 class="font-semibold mb-2">${m.title}</h3><p class="text-slate-500 text-sm leading-relaxed">${m.content.replace(/<[^>]*>/g, '').substring(0, 100)}...</p>${last ? `<div class="absolute inset-0 bg-gradient-to-br from-brand-50 to-white"></div><div class="relative mt-4"><button onclick="openAuth('signup')" class="flex items-center gap-2 text-brand-600 text-sm font-medium hover:text-brand-700">Unlock all <iconify-icon icon="lucide:arrow-right" width="14"></iconify-icon></button></div>` : `<div class="mt-4 flex items-center gap-2 text-brand-600 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">Learn more <iconify-icon icon="lucide:arrow-right" width="14"></iconify-icon></div>`}</div>`
-            }).join(''));
+            renderLandMods(true);
             // FAQ
             rn('faq-list', FAQS.map((f, i) => `<div class="obs-h faq-i bg-white border border-slate-200 rounded-xl overflow-hidden" data-ob style="animation-delay:${.05 + i * .05}s"><button onclick="togFaq(this)" class="w-full flex items-center justify-between px-6 py-5 text-left"><span class="font-semibold text-sm">${f.q}</span><iconify-icon icon="lucide:chevron-down" width="18" class="text-slate-400 transition-transform duration-300 faq-ic"></iconify-icon></button><div class="faq-a hidden px-6 pb-5"><p class="text-slate-500 text-sm leading-relaxed">${f.a}</p></div></div>`).join(''));
         }
@@ -1231,7 +1259,7 @@
             document.getElementById('mod-modal').classList.add('on');
         }
         function closeMod() { document.getElementById('mod-modal').classList.remove('on') }
-        function markDone(id) { const u = Auth.get(); Prog.done(u.id, id); toast('Module completed! ✅'); closeMod(); if (curPage === 'dash') renderDash(); if (curPage === 'cur') renderCur() }
+        function markDone(id) { const u = Auth.get(); Prog.done(u.id, id); toast('Module completed! ✅'); closeMod(); if (curPage === 'dash') renderDash(); if (curPage === 'cur') renderCur(); if (curPage === 'land') { renderLandMods(); } }
 
         // ===================== QUIZZES =====================
         let curQ = null, qAns = {};
