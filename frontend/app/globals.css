@@ -1,0 +1,122 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-base: #0B1215;
+    --text-base: #FFFFFF;
+  }
+  
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html, body {
+    background-color: var(--bg-base);
+    color: var(--text-base);
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: none;
+  }
+
+  /* Hidden scrollbars for clean mobile look */
+  ::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
+  }
+}
+
+@layer components {
+  /* ── Buttons ── */
+  .btn-primary {
+    @apply w-full flex items-center justify-center gap-2.5 font-bold text-[15px]
+           rounded-kua px-4 py-4 text-[#0B1215] bg-primary
+           transition-all duration-300 active:scale-[0.98] outline-none;
+    box-shadow: 0 4px 24px -6px rgba(0, 255, 163, 0.4);
+  }
+  .btn-primary:hover {
+    @apply bg-primaryHover;
+    box-shadow: 0 6px 32px -4px rgba(0, 255, 163, 0.5);
+  }
+  .btn-primary:disabled {
+    @apply opacity-70 scale-100 cursor-not-allowed;
+    box-shadow: none;
+  }
+
+  .btn-secondary {
+    @apply w-full flex items-center justify-center gap-2 font-semibold text-[15px]
+           rounded-kua px-4 py-4 text-textPrimary bg-card border border-border
+           transition-all duration-300 active:scale-[0.98] hover:border-borderHover outline-none;
+  }
+
+  /* ── Inputs ── */
+  .inp {
+    @apply w-full rounded-kuasm px-4 py-3.5 text-[15px] outline-none
+           bg-card border border-border text-textPrimary transition-all duration-300;
+  }
+  .inp::placeholder {
+    @apply text-textMuted;
+  }
+  .inp:focus {
+    @apply border-primary ring-1 ring-primary/20 bg-[#141E24];
+  }
+
+  /* ── Cards & Glass ── */
+  .glass-panel {
+    @apply bg-glass-card border border-border rounded-kua backdrop-blur-3xl shadow-2xl;
+  }
+
+  /* ── Typography ── */
+  .heading-1 {
+    @apply text-[40px] leading-[1.1] font-bold tracking-tight text-white;
+  }
+  .heading-2 {
+    @apply text-2xl font-bold tracking-tight text-white;
+  }
+  .label-sm {
+    @apply text-[11px] font-bold uppercase tracking-[0.08em] text-textMuted mb-2 block;
+  }
+
+  /* ── Spinners & Utilities ── */
+  .spin-dark {
+    @apply inline-block rounded-full w-4 h-4;
+    border: 2px solid rgba(11, 18, 21, 0.3);
+    border-top-color: #0B1215;
+    animation: rot 0.7s linear infinite;
+  }
+  .spin-light {
+    @apply inline-block rounded-full w-4 h-4;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    border-top-color: #FFFFFF;
+    animation: rot 0.7s linear infinite;
+  }
+}
+
+@keyframes rot {
+  to { transform: rotate(360deg); }
+}
+
+/* Base Toast Animation */
+.toast-bar {
+  position: fixed;
+  bottom: 85px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 255, 163, 0.15);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 255, 163, 0.3);
+  color: #00FFA3;
+  border-radius: 100px;
+  padding: 10px 24px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  z-index: 9999;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
