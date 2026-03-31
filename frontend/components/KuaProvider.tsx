@@ -1,7 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
-
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react'
 import { CountryCurrencyMap, getCountryByPrefix } from '@/lib/currency'
 
 interface User {
@@ -17,6 +16,7 @@ interface User {
 interface KuaContextType {
   user: User
   setUser: (u: Partial<User>) => void
+  isHydrated: boolean
   toast: (msg: string) => void
   toastMsg: string
   toastVisible: boolean
@@ -27,7 +27,7 @@ const defaultUser: User = {
   bizName: '',
   bizType: '',
   brandKw: 'Fresh, Affordable, Daily, Trusted, Local',
-  credits: 3,
+  credits: 0,
   balance: 0,
   countryCode: 'KE',
 }
@@ -35,6 +35,7 @@ const defaultUser: User = {
 const KuaCtx = createContext<KuaContextType>({
   user: defaultUser,
   setUser: () => {},
+  isHydrated: false,
   toast: () => {},
   toastMsg: '',
   toastVisible: false,
@@ -42,11 +43,26 @@ const KuaCtx = createContext<KuaContextType>({
 
 export function KuaProvider({ children }: { children: ReactNode }) {
   const [user, setUserState] = useState<User>(defaultUser)
+  const [isHydrated, setIsHydrated] = useState(false)
   const [toastMsg, setToastMsg] = useState('')
   const [toastVisible, setToastVisible] = useState(false)
 
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('kua_user')
+      if (saved) {
+        setUserState(prev => ({ ...prev, ...JSON.parse(saved) }))
+      }
+    } catch {}
+    setIsHydrated(true)
+  }, [])
+
   const setUser = useCallback((partial: Partial<User>) => {
-    setUserState(prev => ({ ...prev, ...partial }))
+    setUserState(prev => {
+      const next = { ...prev, ...partial }
+      localStorage.setItem('kua_user', JSON.stringify(next))
+      return next
+    })
   }, [])
 
   const toast = useCallback((msg: string) => {
@@ -56,12 +72,12 @@ export function KuaProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <KuaCtx.Provider value={{ user, setUser, toast, toastMsg, toastVisible }}>
+    <KuaCtx.Provider value={{ user, setUser, isHydrated, toast, toastMsg, toastVisible }}>
       {children}
       {/* Global toast */}
       <div
-        className="toast-bar"
-        style={{ opacity: toastVisible ? 1 : 0 }}
+        className="toast-bar z-[100]"
+        style={{ opacity: toastVisible ? 1 : 0, pointerEvents: toastVisible ? 'auto' : 'none' }}
       >
         {toastMsg}
       </div>

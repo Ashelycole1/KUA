@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from routers import campaign, payments
+from routers import campaign, payments, auth
 
 app = FastAPI(title="Kua API", version="1.0.0")
 
@@ -19,6 +19,7 @@ app.add_middleware(
 
 app.include_router(campaign.router)
 app.include_router(payments.router)
+app.include_router(auth.router)
 
 
 @app.get("/health")

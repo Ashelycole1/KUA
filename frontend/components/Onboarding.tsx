@@ -63,11 +63,29 @@ export default function Onboarding({ onComplete }: OnboardProps) {
     }, 900)
   }
 
+  async function syncUserAuth(addCredits = 0) {
+    try {
+      const fullPhone = `${prefix}${phone.trim()}`
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: fullPhone, currency_code: activeCountry.code })
+      })
+      const data = await res.json()
+      // If Momoflow succeeded, we force 10 local credits as default since backend might not be hooked up.
+      setUser({ credits: addCredits > 0 ? addCredits : data.credit_balance })
+    } catch {
+      // Offline fallback
+      setUser({ credits: addCredits > 0 ? addCredits : 3 })
+    }
+  }
+
   async function momoFlow() {
     setPaying(true)
     toast(`Payment prompt sent to ${prefix}${phone.trim() || 'your number'}…`)
     await new Promise(r => setTimeout(r, 2500))
-    setUser({ credits: 10, balance: 0 })
+    await syncUserAuth(10)
+    setUser({ balance: 0 })
     toast(`✅ Payment confirmed! 10 credits added via ${activeCountry.paymentMethod}.`)
     await new Promise(r => setTimeout(r, 600))
     onComplete()
@@ -294,8 +312,13 @@ export default function Onboarding({ onComplete }: OnboardProps) {
               </button>
 
               <button
-                className="btn-secondary border-none bg-transparent hover:bg-white/5"
-                onClick={() => { setUser({ credits: 3 }); onComplete() }}
+                className="btn-secondary border-none bg-transparent hover:bg-white/5 disabled:opacity-50"
+                disabled={paying}
+                onClick={async () => {
+                  setPaying(true)
+                  await syncUserAuth(3)
+                  onComplete()
+                }}
               >
                 Skip — start with 3 free credits
               </button>
