@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: kua-backend
+    env: python
+    rootDir: backend
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.13
+      - key: FRONTEND_URL
+        value: "https://ashelycole1.github.io/KUA"
+      # The following sensitive keys MUST be inputted manually in the Render Dashboard
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: AT_API_KEY
+        sync: false
+      - key: AT_USERNAME
+        sync: false
+      - key: GOOGLE_CLOUD_PROJECT
+        sync: false
+      - key: DOCAI_PROCESSOR_ID
+        sync: false
