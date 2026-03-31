@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react'
 import { CountryCurrencyMap, getCountryByPrefix } from '@/lib/currency'
-import { useUser, useAuth } from '@clerk/nextjs'
 
 interface User {
   phone: string
@@ -47,37 +46,41 @@ const KuaCtx = createContext<KuaContextType>({
 })
 
 export function KuaProvider({ children }: { children: ReactNode }) {
-  const { isLoaded, isSignedIn, user: clerkUser } = useUser()
-  const { getToken } = useAuth()
   const [user, setUserState] = useState<User>(defaultUser)
   const [isHydrated, setIsHydrated] = useState(false)
   const [toastMsg, setToastMsg] = useState('')
   const [toastVisible, setToastVisible] = useState(false)
   const [notifications, setNotifications] = useState<any[]>([])
+  const [isLoaded, setIsLoaded] = useState(false)
+  const [clerkUser, setClerkUser] = useState<any>(null)
 
-  // Sync Clerk User to Local State
   useEffect(() => {
-    if (isLoaded && isSignedIn && clerkUser) {
+    const checkClerk = setInterval(() => {
+      if (window.Clerk && window.Clerk.isReady()) {
+        clearInterval(checkClerk)
+        setIsLoaded(true)
+        setClerkUser(window.Clerk.user)
+        
+        window.Clerk.addListener(({ user }) => {
+          setClerkUser(user)
+        })
+      }
+    }, 200)
+    return () => clearInterval(checkClerk)
+  }, [])
+
+  useEffect(() => {
+    if (isLoaded && clerkUser) {
+      const meta = clerkUser.publicMetadata as any
       setUserState(prev => ({
         ...prev,
         phone: clerkUser.primaryPhoneNumber?.phoneNumber || prev.phone,
-        bizName: clerkUser.publicMetadata.bizName as string || prev.bizName,
-        // We sync from clerk metadata if available, otherwise keep local
+        bizName: meta.bizName as string || prev.bizName,
+        bizType: meta.bizType as string || prev.bizType,
+        brandKw: meta.brandKw as string || prev.brandKw,
       }))
     }
-  }, [isLoaded, isSignedIn, clerkUser])
-
-  useEffect(() => {
-    if (isLoaded && isSignedIn && clerkUser) {
-      setUserState(prev => ({
-        ...prev,
-        phone: clerkUser.primaryPhoneNumber?.phoneNumber || prev.phone,
-        bizName: clerkUser.publicMetadata.bizName as string || prev.bizName,
-        bizType: clerkUser.publicMetadata.bizType as string || prev.bizType,
-        brandKw: clerkUser.publicMetadata.brandKw as string || prev.brandKw,
-      }))
-    }
-  }, [isLoaded, isSignedIn, clerkUser])
+  }, [isLoaded, clerkUser])
 
   useEffect(() => {
     try {
@@ -102,10 +105,10 @@ export function KuaProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const syncUser = useCallback(async (details: Partial<User>) => {
-    if (!isSignedIn) return
+    if (!window.Clerk?.user) return
 
     try {
-      const token = await getToken({ template: 'supabase' })
+      const token = await window.Clerk.session?.getToken({ template: 'supabase' })
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/auth/login`, {
         method: 'POST',
         headers: { 
@@ -130,7 +133,7 @@ export function KuaProvider({ children }: { children: ReactNode }) {
     } catch (e) {
       console.error("Sync error:", e)
     }
-  }, [user, setUser, isSignedIn, getToken])
+  }, [user, setUser])
 
   const toast = useCallback((msg: string) => {
     setToastMsg(msg)

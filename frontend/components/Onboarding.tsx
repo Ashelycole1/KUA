@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowRight, MessageSquare, CheckCircle, Store, Zap, ChevronLeft, CreditCard } from 'lucide-react'
 import { useKua } from './KuaProvider'
 import { COUNTRIES, formatCurrency, getCountryByPrefix } from '@/lib/currency'
-import { useUser } from '@clerk/nextjs'
 
 type ObStep = 1 | 2 | 3
 
@@ -43,10 +42,10 @@ export default function Onboarding({ onComplete }: OnboardProps) {
   const [prefix, setPrefix]   = useState(COUNTRIES[0].prefix)
 
   const activeCountry = getCountryByPrefix(prefix)
-  const { isLoaded, user: clerkUser } = useUser()
+  const clerkUser = (window as any).Clerk?.user
 
   useEffect(() => {
-    if (isLoaded && clerkUser) {
+    if (clerkUser) {
       setName(clerkUser.fullName || '')
       const p = clerkUser.primaryPhoneNumber?.phoneNumber || ''
       if (p) {
@@ -57,7 +56,7 @@ export default function Onboarding({ onComplete }: OnboardProps) {
         else if (p.startsWith('+234')) { setPrefix('+234'); setPhone(p.replace('+234', '')) }
       }
     }
-  }, [isLoaded, clerkUser])
+  }, [clerkUser])
 
   function back() { if (step > 1) setStep((step - 1) as ObStep) }
 

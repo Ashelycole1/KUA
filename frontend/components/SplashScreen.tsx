@@ -1,11 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle2, Phone, X } from 'lucide-react'
-import { COUNTRIES } from '@/lib/currency'
+import { CheckCircle2 } from 'lucide-react'
 import { useKua } from './KuaProvider'
-import { SignInButton, SignUpButton } from '@clerk/nextjs'
 
 export default function SplashPage({ onEnter, onLogin }: { onEnter: () => void, onLogin: () => void }) {
   const { setUser, toast } = useKua()
@@ -16,6 +14,13 @@ export default function SplashPage({ onEnter, onLogin }: { onEnter: () => void, 
     { label: 'AI WebP Flyers', active: true },
     { label: 'Sheng / Local', active: false },
   ]
+
+  useEffect(() => {
+    const clerkUser = (window as any).Clerk?.user
+    if (clerkUser) {
+      onLogin()
+    }
+  }, [onLogin])
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center relative z-0 w-full min-h-[100dvh]">
@@ -81,19 +86,15 @@ export default function SplashPage({ onEnter, onLogin }: { onEnter: () => void, 
           transition={{ delay: 0.8 }}
           className="px-6 pb-2 w-full mt-auto"
         >
-          <SignUpButton mode="modal" forceRedirectUrl="/KUA">
-            <button className="btn-primary mb-4" onClick={onEnter}>
-              Build your DNA
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
-          </SignUpButton>
-          <SignInButton mode="modal" forceRedirectUrl="/KUA">
-            <button className="btn-secondary">
-              I already have an account
-            </button>
-          </SignInButton>
+          <button className="btn-primary mb-4 w-full flex items-center justify-center gap-2" onClick={() => { onEnter(); (window as any).Clerk?.openSignUp({ forceRedirectUrl: '/KUA' }) }}>
+            Build your DNA
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          <button className="btn-secondary w-full" onClick={() => (window as any).Clerk?.openSignIn({ forceRedirectUrl: '/KUA' })}>
+            I already have an account
+          </button>
         </motion.div>
       </div>
     </div>
