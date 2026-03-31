@@ -59,6 +59,15 @@ async def generate_campaign(req: CampaignRequest):
     if flyer_bytes:
         flyer_url = storage_service.upload_flyer(flyer_bytes, phone)
 
+    # ── Store in History ──
+    if phone:
+        supabase_client.save_campaign(
+            phone=phone,
+            prompt=input_text,
+            variants=variants,
+            flyer_url=flyer_url or ""
+        )
+
     return CampaignResponse(
         professional=variants.get("professional", ""),
         hype=variants.get("hype", ""),
@@ -67,6 +76,13 @@ async def generate_campaign(req: CampaignRequest):
         flyer_url=flyer_url,
         credits_remaining=credits_remaining,
     )
+
+
+@router.get("/campaign-history/{phone}", response_model=list[dict])
+async def get_history(phone: str):
+    """Retrieve campaign history for a user."""
+    history = supabase_client.get_campaign_history(phone)
+    return history
 
 
 @router.post("/generate-campaign/image", response_model=CampaignResponse)
@@ -99,6 +115,13 @@ async def generate_campaign_image(
 
     if phone:
         supabase_client.deduct_credit(phone)
+        # Store in History
+        supabase_client.save_campaign(
+            phone=phone,
+            prompt=extracted_text,
+            variants=variants,
+            flyer_url=""
+        )
 
     return CampaignResponse(
         professional=variants.get("professional", ""),

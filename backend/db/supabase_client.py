@@ -63,3 +63,31 @@ def upsert_user(phone: str, currency_code: str = 'KES') -> dict:
         return {"phone_number": phone, "credit_balance": 3, "currency_code": currency_code}
     except Exception:
         return {"phone_number": phone, "credit_balance": 3, "currency_code": currency_code}
+
+
+def save_campaign(phone: str, prompt: str, variants: dict, flyer_url: str = "") -> bool:
+    """Save generated campaign to DB."""
+    try:
+        get_supabase().table("campaigns").insert({
+            "user_phone": phone,
+            "prompt": prompt,
+            "professional": variants.get("professional", ""),
+            "hype": variants.get("hype", ""),
+            "sheng": variants.get("sheng", ""),
+            "sms": variants.get("sms", ""),
+            "flyer_url": flyer_url,
+        }).execute()
+        return True
+    except Exception as e:
+        print(f"Error saving campaign: {e}")
+        return False
+
+
+def get_campaign_history(phone: str) -> list:
+    """Fetch campaign history for a user."""
+    try:
+        res = get_supabase().table("campaigns").select("*").eq("user_phone", phone).order("created_at", desc=True).execute()
+        return res.data
+    except Exception as e:
+        print(f"Error fetching history: {e}")
+        return []

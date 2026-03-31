@@ -20,6 +20,7 @@ interface KuaContextType {
   toast: (msg: string) => void
   toastMsg: string
   toastVisible: boolean
+  syncUser: (details: Partial<User>) => Promise<void>
 }
 
 const defaultUser: User = {
@@ -39,6 +40,7 @@ const KuaCtx = createContext<KuaContextType>({
   toast: () => {},
   toastMsg: '',
   toastVisible: false,
+  syncUser: async () => {},
 })
 
 export function KuaProvider({ children }: { children: ReactNode }) {
@@ -51,19 +53,44 @@ export function KuaProvider({ children }: { children: ReactNode }) {
     try {
       const saved = localStorage.getItem('kua_user')
       if (saved) {
-        setUserState(prev => ({ ...prev, ...JSON.parse(saved) }))
+        setUserState((prev: User) => ({ ...prev, ...JSON.parse(saved) }))
       }
     } catch {}
     setIsHydrated(true)
   }, [])
 
   const setUser = useCallback((partial: Partial<User>) => {
-    setUserState(prev => {
+    setUserState((prev: User) => {
       const next = { ...prev, ...partial }
       localStorage.setItem('kua_user', JSON.stringify(next))
       return next
     })
   }, [])
+
+  const syncUser = useCallback(async (details: Partial<User>) => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: details.phone || user.phone,
+          biz_name: details.bizName || user.bizName,
+          biz_type: details.bizType || user.bizType,
+          brand_keywords: details.brandKw || user.brandKw,
+          currency_code: details.countryCode || user.countryCode,
+        })
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setUser({
+          credits: data.credit_balance,
+          phone: data.phone_number,
+        })
+      }
+    } catch (e) {
+      console.error("Sync error:", e)
+    }
+  }, [user, setUser])
 
   const toast = useCallback((msg: string) => {
     setToastMsg(msg)
@@ -72,7 +99,7 @@ export function KuaProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <KuaCtx.Provider value={{ user, setUser, isHydrated, toast, toastMsg, toastVisible }}>
+    <KuaCtx.Provider value={{ user, setUser, isHydrated, toast, toastMsg, toastVisible, syncUser }}>
       {children}
       {/* Global toast */}
       <div

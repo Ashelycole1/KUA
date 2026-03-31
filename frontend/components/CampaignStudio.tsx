@@ -58,6 +58,9 @@ export default function CampaignStudio() {
       if (res.ok) {
         const data = await res.json()
         setResult(data)
+        if (data.credits_remaining !== undefined) {
+          setUser({ credits: data.credits_remaining })
+        }
       } else if (res.status === 403) {
         toast(`Action Denied: Top up ${formatCurrency(countryData.pricePer10, countryData)}`)
         setLoading(false)
@@ -69,9 +72,8 @@ export default function CampaignStudio() {
       setResult({ ...MOCK, flyerUrl: undefined })
     }
 
-    setUser({ credits: user.credits - 1 })
     setLoading(false)
-    toast('✨ Generation Complete. 1 Credit deducted.')
+    toast('✨ Generation Complete.')
   }
 
   function shareWA(text: string) {
@@ -221,24 +223,30 @@ export default function CampaignStudio() {
             {/* Visual Synthesis (Flyer) */}
             <div className="glass-panel p-2">
               <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-[#0A1013] border border-white/5 flex flex-col items-center justify-center">
-                
-                {/* Visual Glitch effects */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-50" />
-                <div className="absolute inset-x-0 h-[2px] bg-primary/20 top-1/4 animate-pulse" />
-                
-                <div className="relative z-10 flex flex-col items-center gap-4 text-center px-6">
-                  <div className="w-12 h-12 rounded-full border border-primary/30 flex items-center justify-center shadow-[0_0_30px_rgba(0,255,163,0.2)] bg-primary/5">
-                    <Sparkles size={20} className="text-primary" />
-                  </div>
-                  <h3 className="text-2xl font-black text-white leading-tight uppercase tracking-tighter" style={{ fontFamily: 'var(--font-pj)' }}>
-                    {input.split(' ').slice(0, 3).join(' ') || 'NEW URBAN DRIP'}
-                  </h3>
-                  <div className="px-4 py-1.5 bg-secondary/20 text-secondary border border-secondary/30 rounded-full font-bold text-[10px] tracking-widest uppercase shadow-[0_4px_20px_rgba(255,107,0,0.2)]">
-                    SALE TRIGGER
-                  </div>
-                </div>
+                {/* Actual Flyer if available */}
+                {result.flyerUrl ? (
+                  <img src={result.flyerUrl} alt="Campaign Flyer" className="absolute inset-0 w-full h-full object-cover z-20" />
+                ) : (
+                  <>
+                    {/* Visual Glitch effects */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-50" />
+                    <div className="absolute inset-x-0 h-[2px] bg-primary/20 top-1/4 animate-pulse" />
+                    
+                    <div className="relative z-10 flex flex-col items-center gap-4 text-center px-6">
+                      <div className="w-12 h-12 rounded-full border border-primary/30 flex items-center justify-center shadow-[0_0_30px_rgba(0,255,163,0.2)] bg-primary/5">
+                        <Sparkles size={20} className="text-primary" />
+                      </div>
+                      <h3 className="text-2xl font-black text-white leading-tight uppercase tracking-tighter" style={{ fontFamily: 'var(--font-pj)' }}>
+                        {input.split(' ').slice(0, 3).join(' ') || 'NEW URBAN DRIP'}
+                      </h3>
+                      <div className="px-4 py-1.5 bg-secondary/20 text-secondary border border-secondary/30 rounded-full font-bold text-[10px] tracking-widest uppercase shadow-[0_4px_20px_rgba(255,107,0,0.2)]">
+                        SALE TRIGGER
+                      </div>
+                    </div>
+                  </>
+                )}
 
-                <div className="absolute bottom-3 left-3 flex items-center gap-2">
+                <div className="absolute bottom-3 left-3 flex items-center gap-2 z-30">
                   <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                   <span className="text-[9px] font-bold uppercase tracking-widest text-primary">Imagen 3</span>
                 </div>

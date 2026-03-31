@@ -1,33 +1,48 @@
 'use client'
 
-import { Activity, Clock } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Activity, Clock, Image as ImageIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-const HISTORY = [
-  {
-    title: 'Fresh Tomatoes',
-    time: 'Today',
-    preview: 'Fresh tomatoes from Limuru! Very sweet, 50/- per kilo. Today only — call now!',
-    tags: [{ label: 'WhatsApp', type: 'wa' }, { label: 'SMS x50', type: 'sms' }, { label: 'Hype tone', type: 'default' }],
-    credits: 1,
-  },
-  {
-    title: 'Mitumba Jeans Sale',
-    time: 'Yesterday',
-    preview: 'FRESH MITUMBA JEANS ARE HERE!! All sizes — Gikomba prices that will SHOCK you!',
-    tags: [{ label: 'WhatsApp', type: 'wa' }, { label: 'Hype tone', type: 'default' }, { label: '+AI flyer', type: 'flyer' }],
-    credits: 1,
-  },
-  {
-    title: 'Phone Accessories',
-    time: '3 days ago',
-    preview: 'Quality phone covers & chargers. All brands. Bei nafuu sana, karibu!',
-    tags: [{ label: 'SMS x200', type: 'sms' }, { label: 'Sheng tone', type: 'default' }],
-    credits: 1,
-  },
-]
+import { useKua } from './KuaProvider'
 
 export default function HistoryTab() {
+  const { user } = useKua()
+  const [history, setHistory] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchHistory() {
+      if (!user.phone) return
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/campaign-history/${user.phone}`)
+        if (res.ok) {
+          const data = await res.json()
+          setHistory(data)
+        }
+      } catch (err) {
+        console.error("History fetch error:", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchHistory()
+  }, [user.phone])
+
+  const stats = [
+    { label: 'Generations', value: history.length.toString() },
+    { label: 'Credits used', value: history.length.toString() },
+    { label: 'Cloud assets', value: history.filter(h => h.flyer_url).length.toString() },
+  ]
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 text-textMuted">
+        <span className="spin-dark mb-4" />
+        <span className="text-[12px] font-bold uppercase tracking-widest">Retrieving Archive...</span>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="label-sm flex items-center gap-2">
@@ -37,11 +52,7 @@ export default function HistoryTab() {
 
       {/* Summary strip */}
       <div className="glass-panel p-4 flex justify-between items-center bg-white/[0.02]">
-        {[
-          { label: 'Generations', value: '3' },
-          { label: 'Credits used', value: '3' },
-          { label: 'SMS sent', value: '250' },
-        ].map((s, i) => (
+        {stats.map((s, i) => (
           <div key={s.label} className={cn("flex flex-col text-center flex-1", i > 0 && "border-l border-white/5")}>
             <div className="text-xl font-bold text-white tracking-tight">{s.value}</div>
             <div className="text-[10px] font-bold uppercase tracking-wider text-textMuted mt-0.5">{s.label}</div>
@@ -50,40 +61,47 @@ export default function HistoryTab() {
       </div>
 
       <div className="flex flex-col gap-3 mt-2">
-        {HISTORY.map((h, i) => (
-          <div
-            key={i}
-            className="glass-panel p-4 flex flex-col gap-2 hover:bg-white/[0.03] transition-colors cursor-pointer"
-          >
-            <div className="flex justify-between items-start">
-              <span className="text-[15px] font-bold text-white tracking-tight">{h.title}</span>
-              <span className="flex items-center gap-1 text-[11px] text-textMuted font-medium">
-                <Clock size={12} />
-                {h.time}
-              </span>
-            </div>
-            <div className="text-[13px] leading-relaxed text-textSecondary line-clamp-2">
-              {h.preview}
-            </div>
-            
-            <div className="flex gap-1.5 flex-wrap mt-1">
-              {h.tags.map((tag, j) => (
-                <span
-                  key={j}
-                  className={cn(
-                    "px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider",
-                    tag.type === 'wa' ? "bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/20" : 
-                    tag.type === 'sms' ? "bg-primary/10 text-primary border border-primary/20" : 
-                    tag.type === 'flyer' ? "bg-secondary/10 text-secondary border border-secondary/20" : 
-                    "bg-white/5 text-textMuted border border-white/10"
-                  )}
-                >
-                  {tag.label}
-                </span>
-              ))}
-            </div>
+        {history.length === 0 ? (
+          <div className="glass-panel p-8 text-center text-textMuted text-[13px] border-dashed">
+            No history detected. Initiate your first synthesis in the Studio.
           </div>
-        ))}
+        ) : (
+          history.map((h, i) => {
+            const date = new Date(h.created_at).toLocaleDateString('en-KE', { day: 'numeric', month: 'short' })
+            return (
+              <div
+                key={h.id || i}
+                className="glass-panel p-4 flex flex-col gap-2 hover:bg-white/[0.03] transition-colors cursor-pointer"
+              >
+                <div className="flex justify-between items-start">
+                  <span className="text-[15px] font-bold text-white tracking-tight line-clamp-1">{h.prompt}</span>
+                  <span className="flex items-center gap-1 text-[11px] text-textMuted font-medium whitespace-nowrap ml-2">
+                    <Clock size={12} />
+                    {date}
+                  </span>
+                </div>
+                <div className="text-[13px] leading-relaxed text-textSecondary line-clamp-2 italic">
+                  "{h.hype || h.professional || h.sheng}"
+                </div>
+                
+                <div className="flex gap-1.5 flex-wrap mt-1">
+                  <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-white/5 text-textMuted border border-white/10">
+                    AI Content
+                  </span>
+                  {h.flyer_url && (
+                    <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-secondary/10 text-secondary border border-secondary/20 flex items-center gap-1">
+                      <ImageIcon size={10} />
+                      Flyer
+                    </span>
+                  )}
+                  <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
+                    Verified
+                  </span>
+                </div>
+              </div>
+            )
+          })
+        )}
       </div>
     </div>
   )
