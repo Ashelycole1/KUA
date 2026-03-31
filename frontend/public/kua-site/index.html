@@ -9,49 +9,6 @@
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="kua-logo.png">
-    
-    <!-- ===================== UNIVERSAL FOOTER ===================== -->
-    <footer class="bg-slate-900 text-slate-400 py-16 mt-auto">
-        <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-12">
-            <div class="col-span-1 md:col-span-1">
-                <div class="flex items-center gap-2 mb-6">
-                    <img src="https://z-cdn-media.chatglm.cn/files/90cbfc0e-5e5c-42cc-8db9-3c8e4d2b853c.png?auth_key=1874898585-c99c8156e16d417599bed389310379a7-0-e77ab3bc51f6577329cd9115e0d45934" alt="Kua" class="h-8 brightness-0 invert opacity-90">
-                </div>
-                <p class="text-sm leading-relaxed mb-6 max-w-xs">Growth & marketing foundations for the next generation. Master the frameworks that drive real scalable success.</p>
-                <p class="text-xs">&copy; 2026 Kua Academy. All rights reserved.</p>
-            </div>
-            
-            <div>
-                <h4 class="text-white font-semibold mb-5 uppercase text-xs tracking-wider">Platform</h4>
-                <ul class="space-y-3 text-sm">
-                    <li><button onclick="goHome(); window.scrollTo(0,0)" class="hover:text-white transition-colors">Home</button></li>
-                    <li><button onclick="goDash()" class="hover:text-white transition-colors">Dashboard</button></li>
-                    <li><button onclick="goCur()" class="hover:text-white transition-colors">Curriculum</button></li>
-                    <li><button onclick="goQuiz()" class="hover:text-white transition-colors">Quizzes</button></li>
-                </ul>
-            </div>
-            
-            <div>
-                <h4 class="text-white font-semibold mb-5 uppercase text-xs tracking-wider">Discover</h4>
-                <ul class="space-y-3 text-sm">
-                    <li><button onclick="if(curPage!=='land') goHome(); setTimeout(()=>scrollToEl('four-ps'), 200)" class="hover:text-white transition-colors">The 4 Ps</button></li>
-                    <li><button onclick="if(curPage!=='land') goHome(); setTimeout(()=>scrollToEl('aida-funnel'), 200)" class="hover:text-white transition-colors">AIDA Funnel</button></li>
-                    <li><button onclick="if(curPage!=='land') goHome(); setTimeout(()=>scrollToEl('modules'), 200)" class="hover:text-white transition-colors">All Modules</button></li>
-                    <li><button onclick="if(curPage!=='land') goHome(); setTimeout(()=>scrollToEl('pricing'), 200)" class="hover:text-white transition-colors">Pricing Options</button></li>
-                </ul>
-            </div>
-            
-            <div>
-                <h4 class="text-white font-semibold mb-5 uppercase text-xs tracking-wider">Connect</h4>
-                <ul class="space-y-3 text-sm">
-                    <li><button onclick="document.getElementById('ai-in').focus(); toggleAI()" class="hover:text-white transition-colors flex items-center gap-2"><iconify-icon icon="lucide:sparkles" width="14" class="text-brand-500"></iconify-icon> Chat with AI</button></li>
-                    <li><a href="mailto:support@kua.com" class="hover:text-white transition-colors">Contact Support</a></li>
-                    <li><button onclick="toast('Terms & Privacy coming soon!')" class="hover:text-white transition-colors">Legal & Privacy</button></li>
-                    <li class="mt-6"><button onclick="Auth.get() ? goDash() : openAuth('signup')" class="text-brand-400 font-medium hover:text-brand-300 transition-colors">Get Started Free &rarr;</button></li>
-                </ul>
-            </div>
-        </div>
-    </footer>
 
     <script>
         tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] }, colors: { brand: { 50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4', 300: '#5eead4', 400: '#2dd4bf', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e', 800: '#115e59', 900: '#134e4a' } } } } }
@@ -1108,43 +1065,81 @@
 
             if (curPage === 'land') renderLandMods();
 
+            // Helper: build a nav button with active-state styling
+            function navBtn(label, fn, isActive) {
+                const activeClass = 'nav-lk text-sm font-semibold text-brand-600 relative after:absolute after:bottom-[-2px] after:left-0 after:right-0 after:h-[2px] after:bg-brand-500 after:rounded-full after:content-[\'\']';
+                const inactiveClass = 'nav-lk text-sm font-medium text-slate-600 hover:text-brand-600 transition-colors';
+                const b = document.createElement('button');
+                b.className = isActive ? activeClass : inactiveClass;
+                b.textContent = label; b.onclick = fn;
+                return b;
+            }
+            function mobBtn(label, fn, isActive) {
+                const b = document.createElement('button');
+                b.className = `w-full text-left text-sm py-2.5 px-3 rounded-lg font-medium transition-colors ${
+                    isActive ? 'bg-brand-50 text-brand-600' : 'text-slate-600 hover:bg-slate-50 hover:text-brand-600'
+                }`;
+                b.textContent = label; b.onclick = () => { fn(); closeMob(); };
+                return b;
+            }
+
             if (u) {
-                // Logged In Global Nav
-                [['Home', goHome], ['Dashboard', goDash], ['Curriculum', goCur], ['Quizzes', goQuiz]].forEach(([t, fn]) => {
-                    const active = (t === 'Home' && curPage === 'land') || (t === 'Dashboard' && curPage === 'dash') || (t === 'Curriculum' && curPage === 'cur') || (t === 'Quizzes' && curPage === 'quiz');
-                    const b = document.createElement('button'); b.className = `nav-lk text-sm transition-colors font-medium ${active ? 'text-brand-600 font-bold' : 'text-slate-600 hover:text-brand-600'}`; b.textContent = t; b.onclick = fn; nl.appendChild(b);
-                    const m = document.createElement('button'); m.className = `text-sm py-2 text-left font-medium transition-colors ${active ? 'text-brand-600 font-bold' : 'text-slate-600 hover:text-brand-600'}`; m.textContent = t; m.onclick = () => { fn(); closeMob() }; ml.appendChild(m);
+                // LOGGED-IN: Show all 4 app pages in header
+                const pages = [
+                    { label: 'Home',       fn: goHome,  active: curPage === 'land' },
+                    { label: 'Dashboard',  fn: goDash,  active: curPage === 'dash' },
+                    { label: 'Curriculum', fn: goCur,   active: curPage === 'cur'  },
+                    { label: 'Quizzes',    fn: goQuiz,  active: curPage === 'quiz' },
+                ];
+                pages.forEach(p => {
+                    nl.appendChild(navBtn(p.label, p.fn, p.active));
+                    ml.appendChild(mobBtn(p.label, p.fn, p.active));
                 });
-                
-                const ub = document.createElement('button'); ub.className = 'flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-brand-600 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors'; ub.innerHTML = `<div class="w-7 h-7 rounded-full bg-brand-100 flex items-center justify-center"><iconify-icon icon="lucide:user" width="14" class="text-brand-600"></iconify-icon></div>${u.name.split(' ')[0]}`; ub.onclick = goDash; nr.appendChild(ub);
-                const lo = document.createElement('button'); lo.className = 'text-sm font-medium text-slate-400 hover:text-red-500 px-3 py-2 transition-colors'; lo.textContent = 'Logout'; lo.onclick = doLogout; nr.appendChild(lo);
-                ml.innerHTML += '<hr class="border-slate-100 my-1">';
-                const mh = document.createElement('button'); mh.className = 'text-sm text-slate-600 hover:text-brand-600 py-2 text-left font-medium'; mh.textContent = 'Back to Home'; mh.onclick = () => { goHome(); window.scrollTo(0,0); closeMob() }; ml.appendChild(mh);
-                const mo = document.createElement('button'); mo.className = 'text-sm text-slate-400 hover:text-red-500 py-2 text-left font-medium'; mo.textContent = 'Logout'; mo.onclick = () => { doLogout(); closeMob() }; ml.appendChild(mo);
+
+                // User menu: avatar + name -> Dashboard, Logout
+                const avatar = document.createElement('button');
+                avatar.className = 'flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-brand-600 px-3 py-1.5 rounded-xl border border-slate-200 hover:border-brand-200 hover:bg-brand-50 transition-all';
+                avatar.innerHTML = `<div class="w-6 h-6 rounded-full bg-brand-500 flex items-center justify-center text-white text-xs font-bold">${u.name.charAt(0).toUpperCase()}</div><span>${u.name.split(' ')[0]}</span><iconify-icon icon="lucide:chevron-down" width="13" class="text-slate-400"></iconify-icon>`;
+                avatar.onclick = goDash;
+                nr.appendChild(avatar);
+
+                const lo = document.createElement('button');
+                lo.className = 'text-sm font-medium text-slate-400 hover:text-red-500 px-3 py-1.5 transition-colors';
+                lo.textContent = 'Logout'; lo.onclick = doLogout;
+                nr.appendChild(lo);
+
+                ml.innerHTML += '<hr class="border-slate-100 my-2">';
+                ml.appendChild(mobBtn('Logout', doLogout, false));
+
             } else {
-                ['Home|top', 'The 4 Ps|four-ps', 'AIDA Funnel|aida-funnel', 'Modules|modules', 'Pricing|pricing'].forEach(t => {
-                    const [a, id] = t.split('|');
-                    const active = (a === 'Home' && curPage === 'land');
-                    const b = document.createElement('button'); b.className = `nav-lk text-sm transition-colors font-medium ${active ? 'text-brand-600' : 'text-slate-600 hover:text-brand-600'}`; b.textContent = a; b.onclick = () => { if (curPage!=='land') goHome(); setTimeout(()=> { if(id==='top') window.scrollTo({top:0,behavior:'smooth'}); else scrollToEl(id); }, 100) }; nl.appendChild(b);
-                    const m = document.createElement('button'); m.className = `text-sm py-2 text-left font-medium transition-colors ${active ? 'text-brand-600' : 'text-slate-600 hover:text-brand-600'}`; m.textContent = a; m.onclick = () => { if (curPage!=='land') goHome(); setTimeout(()=> { if(id==='top') window.scrollTo({top:0,behavior:'smooth'}); else scrollToEl(id); }, 100); closeMob() }; ml.appendChild(m);
+                // LOGGED-OUT: Show landing page section anchors
+                const sections = [
+                    { label: 'The 4 Ps',    id: 'four-ps'    },
+                    { label: 'AIDA Funnel', id: 'aida-funnel' },
+                    { label: 'Modules',     id: 'modules'    },
+                    { label: 'Pricing',     id: 'pricing'    },
+                ];
+                sections.forEach(s => {
+                    const fn = () => { if (curPage !== 'land') goHome(); setTimeout(() => scrollToEl(s.id), 100); };
+                    nl.appendChild(navBtn(s.label, fn, false));
+                    ml.appendChild(mobBtn(s.label, () => { fn(); closeMob(); }, false));
                 });
-                
-                const li = document.createElement('button'); li.className = 'text-sm font-medium text-slate-600 hover:text-brand-600 px-4 py-2'; li.textContent = 'Log in'; li.onclick = () => openAuth('login'); nr.appendChild(li);
-                const su = document.createElement('button'); su.className = 'text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 px-5 py-2.5 rounded-lg shadow-sm transition-colors'; su.textContent = 'Get Started Free'; su.onclick = () => openAuth('signup'); nr.appendChild(su);
-                ml.innerHTML += '<hr class="border-slate-100 my-1">';
-                const ml2 = document.createElement('button'); ml2.className = 'w-full bg-brand-600 hover:bg-brand-700 text-white font-medium py-2.5 rounded-lg text-sm text-center transition-colors'; ml2.textContent = 'Get Started Free'; ml2.onclick = () => { openAuth('signup'); closeMob() }; ml.appendChild(ml2);
-            } else {
-                [['Dashboard', goDash], ['Curriculum', goCur], ['Quizzes', goQuiz]].forEach(([t, fn]) => {
-                    const b = document.createElement('button'); b.className = 'nav-lk text-sm text-slate-600 hover:text-brand-600 transition-colors font-medium'; b.textContent = t; b.onclick = fn; nl.appendChild(b);
-                    const m = document.createElement('button'); m.className = 'text-sm text-slate-600 hover:text-brand-600 py-2 text-left font-medium'; m.textContent = t; m.onclick = () => { fn(); closeMob() }; ml.appendChild(m);
-                });
-                if (u) {
-                    const ub = document.createElement('button'); ub.className = 'flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-brand-600 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors'; ub.innerHTML = `<div class="w-7 h-7 rounded-full bg-brand-100 flex items-center justify-center"><iconify-icon icon="lucide:user" width="14" class="text-brand-600"></iconify-icon></div>${u.name.split(' ')[0]}`; ub.onclick = goDash; nr.appendChild(ub);
-                    const lo = document.createElement('button'); lo.className = 'text-sm font-medium text-slate-400 hover:text-red-500 px-3 py-2 transition-colors'; lo.textContent = 'Logout'; lo.onclick = doLogout; nr.appendChild(lo);
-                    ml.innerHTML += '<hr class="border-slate-100 my-1">';
-                    const mh = document.createElement('button'); mh.className = 'text-sm text-slate-600 hover:text-brand-600 py-2 text-left font-medium'; mh.textContent = 'Back to Home'; mh.onclick = () => { goHome(); closeMob() }; ml.appendChild(mh);
-                    const mo = document.createElement('button'); mo.className = 'text-sm text-slate-400 hover:text-red-500 py-2 text-left font-medium'; mo.textContent = 'Logout'; mo.onclick = () => { doLogout(); closeMob() }; ml.appendChild(mo);
-                }
+
+                const li = document.createElement('button');
+                li.className = 'text-sm font-medium text-slate-600 hover:text-brand-600 px-4 py-2 transition-colors';
+                li.textContent = 'Log In'; li.onclick = () => openAuth('login');
+                nr.appendChild(li);
+
+                const su = document.createElement('button');
+                su.className = 'text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 px-5 py-2.5 rounded-xl shadow-sm shadow-brand-600/20 transition-all hover:shadow-brand-600/30 hover:scale-[1.02]';
+                su.textContent = 'Get Started Free'; su.onclick = () => openAuth('signup');
+                nr.appendChild(su);
+
+                ml.innerHTML += '<hr class="border-slate-100 my-2">';
+                const ml2 = document.createElement('button');
+                ml2.className = 'w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-3 rounded-xl text-sm text-center transition-colors';
+                ml2.textContent = 'Get Started Free'; ml2.onclick = () => { openAuth('signup'); closeMob(); };
+                ml.appendChild(ml2);
             }
         }
 
@@ -1209,17 +1204,68 @@
         // ===================== DASHBOARD =====================
         function renderDash() {
             const u = Auth.get(), pr = Prog.get(u.id), dn = Prog.cnt(u.id), av = Prog.avg(u.id), sk = Streak.rec(u.id), pct = Math.round(dn / MODS.length * 100);
+            // Find the next accessible, incomplete module
+            const nextMod = MODS.find(m => { const mp = pr[m.id] || {}; return !mp.done && (m.free || u.plan !== 'free'); });
+
+            // Resume banner
+            let resumeBanner = '';
+            if (nextMod) {
+                resumeBanner = `<div class="mb-8 bg-gradient-to-r from-brand-600 to-brand-500 rounded-2xl p-5 sm:p-6 flex items-center gap-5 shadow-lg shadow-brand-600/20 cursor-pointer" onclick="openMod('${nextMod.id}')">
+                    <div class="w-14 h-14 shrink-0 rounded-xl bg-white/20 flex items-center justify-center">
+                        <iconify-icon icon="${nextMod.icon}" width="26" class="text-white"></iconify-icon>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-brand-100 text-xs font-semibold uppercase tracking-wider mb-1">${dn > 0 ? 'Continue where you left off' : 'Start your learning journey'}</p>
+                        <h2 class="text-white font-bold text-base sm:text-lg leading-tight truncate">${nextMod.title}</h2>
+                        <p class="text-brand-200 text-sm mt-0.5">Module ${String(nextMod.n).padStart(2,'0')} &middot; ${nextMod.time}</p>
+                    </div>
+                    <div class="shrink-0 bg-white text-brand-600 font-semibold px-4 py-2 rounded-xl text-sm flex items-center gap-1.5">
+                        ${dn > 0 ? 'Resume' : 'Start'} <iconify-icon icon="lucide:arrow-right" width="14"></iconify-icon>
+                    </div>
+                </div>`;
+            }
+
+            // Module rows with done / next-up / locked states
+            const modRows = MODS.map(m => {
+                const mp = pr[m.id] || {};
+                const lk = !m.free && u.plan === 'free';
+                const isNext = !!(nextMod && nextMod.id === m.id);
+                const iconEl = mp.done
+                    ? '<iconify-icon icon="lucide:check-circle" width="20" class="text-brand-600"></iconify-icon>'
+                    : lk ? '<iconify-icon icon="lucide:lock" width="18" class="text-slate-400"></iconify-icon>'
+                    : isNext ? `<iconify-icon icon="${m.icon}" width="18" class="text-white"></iconify-icon>`
+                    : `<iconify-icon icon="${m.icon}" width="18" class="text-slate-500"></iconify-icon>`;
+                const badge = mp.done
+                    ? '<span class="text-[10px] font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded-full shrink-0">Done ✓</span>'
+                    : isNext ? '<span class="text-[10px] font-bold text-brand-600 bg-brand-50 border border-brand-200 px-2 py-0.5 rounded-full shrink-0">Next Up</span>'
+                    : '';
+                const quizTxt = mp.qs !== null ? ' &middot; Quiz: ' + mp.qs + '%' : '';
+                const borderCls = mp.done ? 'border-brand-200 bg-brand-50/20' : isNext ? 'border-brand-400 ring-2 ring-brand-100' : 'border-slate-200';
+                return `<div class="bg-white border ${borderCls} rounded-xl p-4 flex items-center gap-4 ${lk ? 'opacity-50' : 'hover:border-brand-300 cursor-pointer'} transition-all" ${lk ? '' : `onclick="openMod('${m.id}')"`}>
+                    <div class="w-10 h-10 shrink-0 rounded-lg ${mp.done ? 'bg-brand-100' : isNext ? 'bg-brand-600' : 'bg-slate-100'} flex items-center justify-center">${iconEl}</div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-xs font-bold ${mp.done ? 'text-brand-600' : isNext ? 'text-brand-600' : 'text-slate-400'}">M${String(m.n).padStart(2,'0')}</span>
+                            <h3 class="font-semibold text-sm truncate">${m.title}</h3>${badge}
+                        </div>
+                        <p class="text-xs text-slate-400 mt-0.5">${m.time}${quizTxt}</p>
+                    </div>
+                    <iconify-icon icon="${mp.done ? 'lucide:check' : isNext ? 'lucide:play-circle' : 'lucide:chevron-right'}" width="${isNext ? 18 : 16}" class="${mp.done ? 'text-brand-400' : isNext ? 'text-brand-500' : 'text-slate-300'} shrink-0"></iconify-icon>
+                </div>`;
+            }).join('');
+
             rn('dash-body', `
-    <div class="mb-8"><h1 class="text-2xl sm:text-3xl font-bold">Welcome back, ${u.name.split(' ')[0]} 👋</h1><p class="text-slate-500 mt-1">${u.role} · ${u.plan.toUpperCase()} plan</p></div>
-    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-        <div class="bg-white border border-slate-200 rounded-xl p-5"><div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-lg bg-brand-50 flex items-center justify-center"><iconify-icon icon="lucide:book-open" width="18" class="text-brand-600"></iconify-icon></div><span class="text-sm text-slate-500">Progress</span></div><p class="text-2xl font-bold">${dn}/${MODS.length}</p><div class="w-full h-2 bg-slate-100 rounded-full mt-2 overflow-hidden"><div class="h-full bg-brand-500 rounded-full" style="width:${pct}%"></div></div></div>
+    <div class="mb-8"><h1 class="text-2xl sm:text-3xl font-bold">Welcome back, ${u.name.split(' ')[0]} \u{1F44B}</h1><p class="text-slate-500 mt-1">${u.role} &middot; ${u.plan.toUpperCase()} plan</p></div>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white border border-slate-200 rounded-xl p-5"><div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-lg bg-brand-50 flex items-center justify-center"><iconify-icon icon="lucide:book-open" width="18" class="text-brand-600"></iconify-icon></div><span class="text-sm text-slate-500">Progress</span></div><p class="text-2xl font-bold">${dn}/${MODS.length}</p><div class="w-full h-2 bg-slate-100 rounded-full mt-2 overflow-hidden"><div class="h-full bg-brand-500 rounded-full transition-all" style="width:${pct}%"></div></div></div>
         <div class="bg-white border border-slate-200 rounded-xl p-5"><div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center"><iconify-icon icon="lucide:bar-chart-2" width="18" class="text-blue-600"></iconify-icon></div><span class="text-sm text-slate-500">Avg Quiz</span></div><p class="text-2xl font-bold">${av}%</p></div>
         <div class="bg-white border border-slate-200 rounded-xl p-5"><div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center"><iconify-icon icon="lucide:flame" width="18" class="text-amber-600"></iconify-icon></div><span class="text-sm text-slate-500">Streak</span></div><p class="text-2xl font-bold">${sk.c} day${sk.c !== 1 ? 's' : ''}</p></div>
-        <div class="bg-white border border-slate-200 rounded-xl p-5"><div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center"><iconify-icon icon="lucide:award" width="18" class="text-purple-600"></iconify-icon></div><span class="text-sm text-slate-500">Plan</span></div><p class="text-2xl font-bold">${u.plan === 'pro' || u.plan === 'teams' ? '⭐ Pro' : 'Free'}</p>${u.plan === 'free' ? '<button onclick="doUpgrade(\'pro\')" class="text-brand-600 text-xs font-medium mt-1 hover:underline">Upgrade →</button>' : ''}</div>
+        <div class="bg-white border border-slate-200 rounded-xl p-5"><div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center"><iconify-icon icon="lucide:award" width="18" class="text-purple-600"></iconify-icon></div><span class="text-sm text-slate-500">Plan</span></div><p class="text-2xl font-bold">${u.plan === 'pro' || u.plan === 'teams' ? '\u2B50 Pro' : 'Free'}</p>${u.plan === 'free' ? '<button onclick="doUpgrade(\'pro\')" class="text-brand-600 text-xs font-medium mt-1 hover:underline">Upgrade \u2192</button>' : ''}</div>
     </div>
-    <h2 class="text-lg font-bold mb-4">Continue Learning</h2>
-    <div class="space-y-3 mb-10">${MODS.map(m => { const mp = pr[m.id] || {}; const lk = !m.free && u.plan === 'free'; return `<div class="bg-white border ${mp.done ? 'border-brand-200' : 'border-slate-200'} rounded-xl p-4 flex items-center gap-4 ${lk ? 'opacity-60' : 'hover:border-brand-300 cursor-pointer'} transition-colors" ${lk ? '' : `onclick="openMod('${m.id}')"`}><div class="w-10 h-10 shrink-0 rounded-lg ${mp.done ? 'bg-brand-100' : 'bg-slate-100'} flex items-center justify-center">${mp.done ? '<iconify-icon icon="lucide:check-circle" width="20" class="text-brand-600"></iconify-icon>' : lk ? '<iconify-icon icon="lucide:lock" width="18" class="text-slate-400"></iconify-icon>' : `<iconify-icon icon="${m.icon}" width="18" class="text-slate-500"></iconify-icon>`}</div><div class="flex-1 min-w-0"><div class="flex items-center gap-2"><span class="text-xs font-bold ${mp.done ? 'text-brand-600' : 'text-slate-400'}">M${String(m.n).padStart(2, '0')}</span><h3 class="font-semibold text-sm truncate">${m.title}</h3></div><p class="text-xs text-slate-400 mt-0.5">${m.time}${mp.qs !== null ? ' · Quiz: ' + mp.qs + '%' : ''}</p></div><iconify-icon icon="lucide:chevron-right" width="16" class="text-slate-300 shrink-0"></iconify-icon></div>` }).join('')}</div>
-    ${dn === MODS.length && (u.plan === 'pro' || u.plan === 'teams') ? `<div class="bg-gradient-to-r from-brand-50 to-white border border-brand-200 rounded-2xl p-8 text-center"><iconify-icon icon="lucide:award" width="40" class="text-brand-600 mb-3"></iconify-icon><h3 class="text-xl font-bold mb-2">You've earned your certificate! 🎉</h3><p class="text-slate-500 text-sm mb-4">Congratulations on completing all 12 modules.</p><button onclick="genCert()" class="bg-brand-600 hover:bg-brand-700 text-white font-medium px-6 py-3 rounded-xl text-sm transition-colors">Generate Certificate</button></div>` : ''}
+    ${resumeBanner}
+    <div class="flex items-center justify-between mb-4"><h2 class="text-lg font-bold">All Modules</h2><span class="text-sm text-slate-400">${dn}/${MODS.length} complete</span></div>
+    <div class="space-y-3 mb-10">${modRows}</div>
+    ${dn === MODS.length && (u.plan === 'pro' || u.plan === 'teams') ? '<div class="bg-gradient-to-r from-brand-50 to-white border border-brand-200 rounded-2xl p-8 text-center"><iconify-icon icon="lucide:award" width="40" class="text-brand-600 mb-3"></iconify-icon><h3 class="text-xl font-bold mb-2">You\'ve earned your certificate! \u{1F389}</h3><p class="text-slate-500 text-sm mb-4">Congratulations on completing all 12 modules.</p><button onclick="genCert()" class="bg-brand-600 hover:bg-brand-700 text-white font-medium px-6 py-3 rounded-xl text-sm transition-colors">Generate Certificate</button></div>' : ''}
     `);
         }
 
