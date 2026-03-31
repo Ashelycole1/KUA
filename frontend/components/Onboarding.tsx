@@ -93,13 +93,14 @@ export default function Onboarding({ onComplete }: OnboardProps) {
   }
 
   return (
-    <div className="flex-1 flex flex-col relative overflow-hidden bg-background">
+    <div className="flex-1 flex flex-col items-center relative overflow-hidden bg-background w-full min-h-screen">
       {/* Dynamic blurred background accents */}
-      <div className="absolute top-[-20%] left-[-10%] w-[300px] h-[300px] bg-primary/10 blur-[100px] rounded-full pointer-events-none" />
+      <div className="absolute top-[-20%] left-[-10%] w-[30vw] h-[30vw] min-w-[300px] bg-primary/10 blur-[100px] rounded-full pointer-events-none" />
 
-      <HeaderBar />
+      <div className="w-full max-w-md flex flex-col h-full flex-1">
+        <HeaderBar />
 
-      <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait">
         <motion.div
           key={step}
           variants={slideVariants}
@@ -302,7 +303,8 @@ export default function Onboarding({ onComplete }: OnboardProps) {
           )}
 
         </motion.div>
-      </AnimatePresence>
+        </AnimatePresence>
+      </div>
     </div>
   )
 }

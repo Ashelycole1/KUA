@@ -39,11 +39,9 @@ export default function RootLayout({
       <head>
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
-      <body className={`${plusJakarta.variable} font-sans min-h-[100dvh] flex items-center justify-center bg-[#000]`}>
-        {/* Mobile shell — max 420px centered on desktop */}
-        <div className="w-full max-w-[420px] h-[100dvh] flex flex-col relative overflow-hidden bg-background">
-          {children}
-        </div>
+      <body className={`${plusJakarta.variable} font-sans min-h-screen bg-background text-white`}>
+        {/* Full screen layout, letting components dictact width and scroll behavior */}
+        {children}
       </body>
     </html>
   )
