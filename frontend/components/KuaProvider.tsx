@@ -1,7 +1,6 @@
-'use client'
-
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react'
 import { CountryCurrencyMap, getCountryByPrefix } from '@/lib/currency'
+import { useUser, useAuth } from '@clerk/nextjs'
 
 interface User {
   phone: string
@@ -48,11 +47,37 @@ const KuaCtx = createContext<KuaContextType>({
 })
 
 export function KuaProvider({ children }: { children: ReactNode }) {
+  const { isLoaded, isSignedIn, user: clerkUser } = useUser()
+  const { getToken } = useAuth()
   const [user, setUserState] = useState<User>(defaultUser)
   const [isHydrated, setIsHydrated] = useState(false)
   const [toastMsg, setToastMsg] = useState('')
   const [toastVisible, setToastVisible] = useState(false)
   const [notifications, setNotifications] = useState<any[]>([])
+
+  // Sync Clerk User to Local State
+  useEffect(() => {
+    if (isLoaded && isSignedIn && clerkUser) {
+      setUserState(prev => ({
+        ...prev,
+        phone: clerkUser.primaryPhoneNumber?.phoneNumber || prev.phone,
+        bizName: clerkUser.publicMetadata.bizName as string || prev.bizName,
+        // We sync from clerk metadata if available, otherwise keep local
+      }))
+    }
+  }, [isLoaded, isSignedIn, clerkUser])
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn && clerkUser) {
+      setUserState(prev => ({
+        ...prev,
+        phone: clerkUser.primaryPhoneNumber?.phoneNumber || prev.phone,
+        bizName: clerkUser.publicMetadata.bizName as string || prev.bizName,
+        bizType: clerkUser.publicMetadata.bizType as string || prev.bizType,
+        brandKw: clerkUser.publicMetadata.brandKw as string || prev.brandKw,
+      }))
+    }
+  }, [isLoaded, isSignedIn, clerkUser])
 
   useEffect(() => {
     try {
@@ -77,10 +102,16 @@ export function KuaProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const syncUser = useCallback(async (details: Partial<User>) => {
+    if (!isSignedIn) return
+
     try {
+      const token = await getToken({ template: 'supabase' })
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/auth/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
           phone: details.phone || user.phone,
           biz_name: details.bizName || user.bizName,
@@ -99,7 +130,7 @@ export function KuaProvider({ children }: { children: ReactNode }) {
     } catch (e) {
       console.error("Sync error:", e)
     }
-  }, [user, setUser])
+  }, [user, setUser, isSignedIn, getToken])
 
   const toast = useCallback((msg: string) => {
     setToastMsg(msg)

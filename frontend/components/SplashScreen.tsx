@@ -5,12 +5,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle2, Phone, X } from 'lucide-react'
 import { COUNTRIES } from '@/lib/currency'
 import { useKua } from './KuaProvider'
+import { SignInButton, SignUpButton } from '@clerk/nextjs'
 
 export default function SplashPage({ onEnter, onLogin }: { onEnter: () => void, onLogin: () => void }) {
   const { setUser, toast } = useKua()
-  const [showLogin, setShowLogin] = useState(false)
-  const [phoneIdx, setPhoneIdx] = useState(0)
-  const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
   const tags = [
     { label: 'Business DNA', active: true },
@@ -83,92 +81,21 @@ export default function SplashPage({ onEnter, onLogin }: { onEnter: () => void, 
           transition={{ delay: 0.8 }}
           className="px-6 pb-2 w-full mt-auto"
         >
-          <button className="btn-primary mb-4" onClick={onEnter}>
-            Build your DNA
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-          <button className="btn-secondary" onClick={() => setShowLogin(true)}>
-            I already have an account
-          </button>
+          <SignUpButton mode="modal" forceRedirectUrl="/KUA">
+            <button className="btn-primary mb-4" onClick={onEnter}>
+              Build your DNA
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          </SignUpButton>
+          <SignInButton mode="modal" forceRedirectUrl="/KUA">
+            <button className="btn-secondary">
+              I already have an account
+            </button>
+          </SignInButton>
         </motion.div>
       </div>
-
-      {/* ── Login Modal ── */}
-      <AnimatePresence>
-        {showLogin && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-background/80 backdrop-blur-md flex items-center justify-center p-6"
-          >
-            <motion.div
-              initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-              className="bg-[#141E24] border border-white/10 rounded-3xl p-6 w-full max-w-[320px] flex flex-col items-center relative"
-            >
-              <button onClick={() => setShowLogin(false)} className="absolute top-4 right-4 p-2 text-textMuted hover:text-white rounded-full bg-white/5">
-                <X size={16} />
-              </button>
-              
-              <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4 mt-2">
-                <Phone size={20} />
-              </div>
-              
-              <h3 className="text-xl font-bold tracking-tight text-white mb-2">Welcome back</h3>
-              <p className="text-[13px] text-textSecondary text-center mb-6">Enter your registered phone number to access your workspace.</p>
-              
-              <div className="flex gap-2 w-full mb-6">
-                <select 
-                  className="inp w-[100px] flex-none px-2"
-                  value={phoneIdx} onChange={e => setPhoneIdx(Number(e.target.value))}
-                >
-                  {COUNTRIES.map((c, i) => (
-                    <option key={c.code} value={i} className="bg-card text-white">
-                      {c.code} {c.prefix}
-                    </option>
-                  ))}
-                </select>
-                <input 
-                  type="tel" 
-                  className="inp flex-1 min-w-0" 
-                  placeholder="7XX XXX XXX" 
-                  value={phone} 
-                  onChange={e => setPhone(e.target.value.replace(/\D/g, ''))} 
-                />
-              </div>
-              
-              <button 
-                className="btn-primary w-full"
-                disabled={loading || phone.length < 5}
-                onClick={async () => {
-                  setLoading(true)
-                  const fullPhone = COUNTRIES[phoneIdx].prefix + phone
-                  try {
-                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/auth/login`, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ phone: fullPhone, currency_code: COUNTRIES[phoneIdx].code })
-                    })
-                    const data = await res.json()
-                    // Persist to wallet context / localStorage automatically checks this
-                    setUser({ phone: data.phone_number, credits: data.credit_balance, countryCode: data.currency_code })
-                    toast(`Welcome back! You have ${data.credit_balance} credits remaining.`)
-                    onLogin()
-                  } catch (e) {
-                    // Graceful degrade if API is offline
-                    toast('Workspace synced locally (Offline Mode)')
-                    setUser({ phone: fullPhone })
-                    onLogin()
-                  }
-                  setLoading(false)
-                }}
-              >
-                {loading ? <span className="spin-dark border-background border-t-transparent" /> : "Access Workspace"}
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   )
 }

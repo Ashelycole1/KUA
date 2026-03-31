@@ -12,6 +12,13 @@
     <script>
         tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] }, colors: { brand: { 50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4', 300: '#5eead4', 400: '#2dd4bf', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e', 800: '#115e59', 900: '#134e4a' } } } } }
     </script>
+    <script
+        async
+        crossorigin="anonymous"
+        data-clerk-publishable-key="REPLACE_WITH_YOUR_CLERK_PUBLISHABLE_KEY"
+        src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
+        type="text/javascript"
+    ></script>
     <style>
         * {
             margin: 0;
@@ -1042,11 +1049,29 @@
         // ===================== BACKEND =====================
         const DB = { g(k) { try { return JSON.parse(localStorage.getItem('k_' + k)) } catch { return null } }, s(k, v) { localStorage.setItem('k_' + k, JSON.stringify(v)) }, r(k) { localStorage.removeItem('k_' + k) } };
         const Auth = {
-            up(name, email, pw, role) { const u = DB.g('users') || []; if (u.find(x => x.email === email)) return { ok: false, e: 'Email already exists.' }; const user = { id: Date.now().toString(36), name, email, pw: btoa(pw), role, plan: 'free', ts: new Date().toISOString() }; u.push(user); DB.s('users', u); DB.s('sess', { uid: user.id }); Prog.init(user.id); Ana.t('signup', { role }); return { ok: true, u: user } },
-            in(email, pw) { const u = (DB.g('users') || []).find(x => x.email === email && x.pw === btoa(pw)); if (!u) return { ok: false, e: 'Invalid email or password.' }; DB.s('sess', { uid: u.id }); Ana.t('login', {}); return { ok: true, u } },
-            out() { DB.r('sess'); Ana.t('logout', {}) },
-            get() { const s = DB.g('sess'); if (!s) return null; const u = (DB.g('users') || []).find(x => x.id === s.uid); if (!u) { DB.r('sess'); return null } return u },
-            upg(plan) { const u = Auth.get(); if (!u) return false; const us = DB.g('users') || []; const f = us.find(x => x.id === u.id); if (f) { f.plan = plan; DB.s('users', us); Ana.t('upgrade', { plan }) } return true }
+            async load() {
+                return new Promise((resolve) => {
+                    const check = setInterval(() => {
+                        if (window.Clerk && window.Clerk.isReady()) {
+                            clearInterval(check);
+                            resolve(window.Clerk);
+                        }
+                    }, 100);
+                });
+            },
+            up() { window.Clerk.openSignUp() },
+            in() { window.Clerk.openSignIn() },
+            out() { window.Clerk.signOut(() => window.location.reload()) },
+            get() { 
+                if (!window.Clerk || !window.Clerk.user) return null;
+                const u = window.Clerk.user;
+                return {
+                    id: u.id,
+                    name: u.fullName || u.username || 'User',
+                    email: u.primaryEmailAddress?.emailAddress,
+                    plan: u.publicMetadata.plan || 'free'
+                };
+            }
         };
         const Prog = {
             init(uid) { if (!DB.g('pr_' + uid)) { const p = {}; MODS.forEach(m => { p[m.id] = { done: false, qs: null, qa: 0 } }); DB.s('pr_' + uid, p) } },
@@ -1303,11 +1328,17 @@
         function animCT(el) { const tgt = parseFloat(el.dataset.ct), dec = el.hasAttribute('data-dec'), dur = 2000, st = performance.now(); function up(now) { const p = Math.min((now - st) / dur, 1), e = 1 - Math.pow(1 - p, 4), v = e * tgt; el.textContent = dec ? v.toFixed(1) : Math.floor(v).toLocaleString(); if (p < 1) requestAnimationFrame(up) } requestAnimationFrame(up) }
 
         // ===================== INIT =====================
-        function init() {
-            renderLanding(); syncUI();
+        async function init() {
+            renderLanding();
+            await Auth.load();
+            syncUI();
             setTimeout(() => document.querySelectorAll('[data-ob]').forEach(el => obs.observe(el)), 100);
-            // Check session
-            const u = Auth.get(); if (u) syncUI();
+            
+            // Re-sync UI on Clerk session changes
+            window.Clerk.addListener(({ session }) => {
+                syncUI();
+                if (curPage === 'dash') renderDash();
+            });
         }
         document.addEventListener('DOMContentLoaded', init);
     </script>

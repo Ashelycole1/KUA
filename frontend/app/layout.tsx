@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Plus_Jakarta_Sans } from 'next/font/google'
+import { ClerkProvider } from '@clerk/nextjs'
 import './globals.css'
 
 const plusJakarta = Plus_Jakarta_Sans({ 
@@ -35,14 +36,16 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-      </head>
-      <body className={`${plusJakarta.variable} font-sans min-h-screen bg-background text-white`}>
-        {/* Full screen layout, letting components dictact width and scroll behavior */}
-        {children}
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <head>
+          <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        </head>
+        <body className={`${plusJakarta.variable} font-sans min-h-screen bg-background text-white`}>
+          {/* Full screen layout, letting components dictact width and scroll behavior */}
+          {children}
+        </body>
+      </html>
+    </ClerkProvider>
   )
 }

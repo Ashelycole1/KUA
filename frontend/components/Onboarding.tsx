@@ -1,10 +1,9 @@
-'use client'
-
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowRight, MessageSquare, CheckCircle, Store, Zap, ChevronLeft, CreditCard } from 'lucide-react'
 import { useKua } from './KuaProvider'
 import { COUNTRIES, formatCurrency, getCountryByPrefix } from '@/lib/currency'
+import { useUser } from '@clerk/nextjs'
 
 type ObStep = 1 | 2 | 3
 
@@ -44,6 +43,21 @@ export default function Onboarding({ onComplete }: OnboardProps) {
   const [prefix, setPrefix]   = useState(COUNTRIES[0].prefix)
 
   const activeCountry = getCountryByPrefix(prefix)
+  const { isLoaded, user: clerkUser } = useUser()
+
+  useEffect(() => {
+    if (isLoaded && clerkUser) {
+      setName(clerkUser.fullName || '')
+      const p = clerkUser.primaryPhoneNumber?.phoneNumber || ''
+      if (p) {
+        // Simple heuristic to split prefix and number
+        if (p.startsWith('+254')) { setPrefix('+254'); setPhone(p.replace('+254', '')) }
+        else if (p.startsWith('+255')) { setPrefix('+255'); setPhone(p.replace('+255', '')) }
+        else if (p.startsWith('+256')) { setPrefix('+256'); setPhone(p.replace('+256', '')) }
+        else if (p.startsWith('+234')) { setPrefix('+234'); setPhone(p.replace('+234', '')) }
+      }
+    }
+  }, [isLoaded, clerkUser])
 
   function back() { if (step > 1) setStep((step - 1) as ObStep) }
 
@@ -64,20 +78,10 @@ export default function Onboarding({ onComplete }: OnboardProps) {
   }
 
   async function syncUserAuth(addCredits = 0) {
-    try {
-      const fullPhone = `${prefix}${phone.trim()}`
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: fullPhone, currency_code: activeCountry.code })
-      })
-      const data = await res.json()
-      // If Momoflow succeeded, we force 10 local credits as default since backend might not be hooked up.
-      setUser({ credits: addCredits > 0 ? addCredits : data.credit_balance })
-    } catch {
-      // Offline fallback
-      setUser({ credits: addCredits > 0 ? addCredits : 3 })
-    }
+    const { syncUser } = useKua()
+    const fullPhone = `${prefix}${phone.trim()}`
+    await syncUser({ phone: fullPhone })
+    // We can add logic to check if credits were added if needed
   }
 
   async function momoFlow() {

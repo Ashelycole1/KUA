@@ -7,8 +7,6 @@ const withPWA = require('next-pwa')({
 })
 
 const nextConfig = {
-  output: 'export',
-  distDir: 'out',
   basePath: '/KUA',
   images: {
     unoptimized: true,
