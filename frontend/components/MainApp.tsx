@@ -210,6 +210,11 @@ export default function MainApp() {
                     Enter the Campaign Studio
                     <Wand2 size={18} />
                   </button>
+                  
+                  <a href="/KUA/kua-site/index.html" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 mt-2 px-4 py-3 rounded-xl border border-white/10 text-white/70 hover:text-white hover:bg-white/5 font-bold text-[14px] transition-colors w-full text-center">
+                    Explore Marketing Foundations
+                    <ChevronRight size={18} />
+                  </a>
                 </div>
               )}
 

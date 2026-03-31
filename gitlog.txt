@@ -1,0 +1,53 @@
+﻿commit 38ebbd44e7601a199401db3877f6adcd5ea8dfef
+Author: Ashelycole1 <ashelycole1@github.com>
+Date:   Tue Mar 31 18:11:57 2026 +0300
+
+    Implement fully functional Notifications and Settings
+
+M	frontend/components/KuaProvider.tsx
+M	frontend/components/MainApp.tsx
+A	frontend/components/NotificationOverlay.tsx
+A	frontend/components/SettingsTab.tsx
+
+commit e9aeb44d7138b2bfa27182a987d01fd8d7e2c2f4
+Author: Ashelycole1 <ashelycole1@github.com>
+Date:   Tue Mar 31 18:10:31 2026 +0300
+
+    Improve Supabase error handling for diagnosis
+
+M	backend/db/supabase_client.py
+
+commit ce22492b0f7a5d66cc7a9189f7ccd06ae01124a0
+Author: Ashelycole1 <ashelycole1@github.com>
+Date:   Tue Mar 31 17:59:26 2026 +0300
+
+    Integrate Supabase Auth and AI history persistence
+
+A	backend/db/migrations/00002_campaigns.sql
+M	backend/db/supabase_client.py
+M	backend/routers/campaign.py
+M	frontend/components/CampaignStudio.tsx
+M	frontend/components/HistoryTab.tsx
+M	frontend/components/KuaProvider.tsx
+
+commit 7334a512be3c4de28b7582e8a506d9ee341b202e
+Author: NIWASIIMA ASHELYCOLE <coleniwasiima@gmail.com>
+Date:   Tue Mar 31 17:09:50 2026 +0300
+
+    feat: Add persistent authentication and backend user syncing
+
+M	backend/main.py
+A	backend/routers/auth.py
+M	frontend/app/page.tsx
+M	frontend/components/KuaProvider.tsx
+M	frontend/components/Onboarding.tsx
+M	frontend/components/SplashScreen.tsx
+
+commit 2af1314f4990afc6babca9dba36c56a86cb3a3bf
+Author: NIWASIIMA ASHELYCOLE <coleniwasiima@gmail.com>
+Date:   Tue Mar 31 16:29:24 2026 +0300
+
+    feat: Backend Imagen and Localized Slang Engine
+
+M	backend/routers/campaign.py
+M	backend/services/gemini_service.py
