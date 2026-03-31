@@ -6,7 +6,7 @@ load_dotenv()
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY", ""))
 
-MODEL = "gemini-2.5-flash-preview-04-17"
+MODEL = "gemini-2.5-flash"
 
 SYSTEM_PROMPT = """You are a pan-African marketing copywriter for small mobile-first merchants.
 Generate campaign copy that feels authentic, local, and compelling for the merchant's target audience.
@@ -23,7 +23,11 @@ async def generate_campaign_text(
     brand_keywords: str = "",
 ) -> dict:
     """Call Gemini 2.5 Flash and return 4 campaign tone variants."""
-    model = genai.GenerativeModel(MODEL, system_instruction=SYSTEM_PROMPT)
+    model = genai.GenerativeModel(
+        MODEL,
+        system_instruction=SYSTEM_PROMPT,
+        generation_config={"response_mime_type": "application/json"}
+    )
 
     context = ""
     if biz_name:
@@ -44,16 +48,11 @@ Generate 4 campaign variations as JSON:
 
     try:
         response = model.generate_content(prompt)
-        raw = response.text.strip()
-        # Strip markdown code fences if present
-        if raw.startswith("```"):
-            raw = raw.split("```")[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
         import json
-        return json.loads(raw.strip())
+        return json.loads(response.text.strip())
     except Exception as e:
         # Graceful fallback
+        print(f"Gemini API Error: {e}")
         return {
             "professional": f"We are pleased to offer {text}. Contact us today for orders.",
             "hype": f"🔥 {text.upper()}!! Don't miss out — limited stock! Call NOW!",
