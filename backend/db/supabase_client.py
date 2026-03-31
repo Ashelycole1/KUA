@@ -16,7 +16,8 @@ def get_user(phone: str) -> dict | None:
     try:
         res = get_supabase().table("users").select("*").eq("phone_number", phone).single().execute()
         return res.data
-    except Exception:
+    except Exception as e:
+        print(f"SUPABASE ERROR (get_user): {e}")
         return None
 
 
@@ -29,7 +30,8 @@ def deduct_credit(phone: str) -> bool:
             {"credit_balance": user["credit_balance"] - 1}
         ).eq("phone_number", phone).execute()
         return True
-    except Exception:
+    except Exception as e:
+        print(f"SUPABASE ERROR (deduct_credit): {e}")
         return False
 
 
@@ -47,7 +49,8 @@ def add_credits(phone: str, amount: int = 10) -> bool:
                 {"phone_number": phone, "credit_balance": amount}
             ).execute()
         return True
-    except Exception:
+    except Exception as e:
+        print(f"SUPABASE ERROR (add_credits): {e}")
         return False
 
 
@@ -61,8 +64,11 @@ def upsert_user(phone: str, currency_code: str = 'KES') -> dict:
             {"phone_number": phone, "credit_balance": 3, "currency_code": currency_code}
         ).execute()
         return {"phone_number": phone, "credit_balance": 3, "currency_code": currency_code}
-    except Exception:
-        return {"phone_number": phone, "credit_balance": 3, "currency_code": currency_code}
+    except Exception as e:
+        # If it fails, log it clearly so we can see why (missing keys, table not found, etc.)
+        print(f"SUPABASE ERROR (upsert_user): {e}")
+        # Re-raise so the API returns 500
+        raise e
 
 
 def save_campaign(phone: str, prompt: str, variants: dict, flyer_url: str = "") -> bool:
