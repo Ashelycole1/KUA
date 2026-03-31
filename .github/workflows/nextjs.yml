@@ -38,6 +38,7 @@ jobs:
         run: npx next build
         env:
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_API_URL: https://kua.onrender.com
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
