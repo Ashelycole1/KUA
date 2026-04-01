@@ -88,12 +88,12 @@ export default function Onboarding({ onComplete }: OnboardProps) {
     const fullPhone = `${prefix}${phone.trim()}`
     
     try {
-      const token = await (window as any).Clerk.session?.getToken({ template: 'supabase' })
+      const token = await (window as any).Clerk?.session?.getToken({ template: 'supabase' })
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/momo/initiate`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token || ''}`
         },
         body: JSON.stringify({
           phone: fullPhone,

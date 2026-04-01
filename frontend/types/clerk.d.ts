@@ -2,7 +2,9 @@ declare global {
   interface Clerk {
     isReady: () => boolean;
     user: any;
-    session: any;
+    session: {
+      getToken: (options: { template: string }) => Promise<string>;
+    } | null;
     openSignIn: (props?: any) => void;
     openSignUp: (props?: any) => void;
     signOut: (callback?: () => void) => void;

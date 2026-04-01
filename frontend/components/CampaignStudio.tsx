@@ -8,12 +8,7 @@ import { formatCurrency } from '@/lib/currency'
 import { cn } from '@/lib/utils'
 
 // Add Clerk access if it isn't already handled by the environment
-declare global {
-  interface Window {
-    Clerk: any
-  }
-}
-
+// Campaign types
 interface CampaignResult {
   professional: string
   hype: string
@@ -66,14 +61,14 @@ export default function CampaignStudio() {
     setOcrLoading(true)
 
     try {
-      const token = await window.Clerk.session?.getToken({ template: 'supabase' })
+      const token = await window.Clerk?.session?.getToken({ template: 'supabase' })
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/ocr-image`,
         {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${token || ''}`
           },
           body: JSON.stringify({ image: base64, filename: file.name }),
         }
@@ -137,14 +132,14 @@ export default function CampaignStudio() {
       }
       if (injectedImage) body.image = injectedImage
 
-      const token = await window.Clerk.session?.getToken({ template: 'supabase' })
+      const token = await window.Clerk?.session?.getToken({ template: 'supabase' })
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/generate-campaign`,
         { 
           method: 'POST', 
           headers: { 
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${token || ''}`
           }, 
           body: JSON.stringify(body) 
         }
