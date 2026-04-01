@@ -7,9 +7,9 @@ import { formatCurrency } from '@/lib/currency'
 import { cn } from '@/lib/utils'
 
 const RECIPIENT_OPTIONS = [
-  { label: 'My 50 contacts', count: 50, icon: Users },
-  { label: 'Upload CSV (200)', count: 200, icon: FileSpreadsheet },
-  { label: 'Single test', count: 1, icon: Smartphone },
+  { id: 'contacts', label: 'Phone Contacts', count: 0, icon: Smartphone },
+  { id: 'csv',      label: 'Upload CSV / Text', count: 0, icon: FileSpreadsheet },
+  { id: 'manual',   label: 'Manual Entry', count: 1, icon: Users },
 ]
 
 const HISTORY = [
@@ -22,21 +22,94 @@ const HISTORY = [
 ]
 
 export default function BroadcastSMS({ prefilledText }: { prefilledText?: string }) {
-  const { toast, countryData } = useKua()
+  const { user, toast, countryData, syncUser } = useKua()
   const [smsText, setSmsText]   = useState(prefilledText || 'Fresh tomatoes from Limuru! Very sweet, 50/- per kilo. Today only — call 0712 345 678 now!')
   const [selected, setSelected] = useState(0)
   const [sending, setSending]   = useState(false)
+  const [recipients, setRecipients] = useState<string[]>([])
+  const [fileName, setFileName] = useState('')
 
-  const recipients = RECIPIENT_OPTIONS[selected].count
-  const cost = recipients === 1 ? countryData.smsCost : recipients * countryData.smsCost
+  const recipientCount = recipients.length || RECIPIENT_OPTIONS[selected].count
+  const requiredCredits = Math.ceil(recipientCount / 20)
+  const hasEnoughCredits = user.credits >= requiredCredits
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setFileName(file.name)
+    
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const text = event.target?.result as string
+      // Basic parser: split by comma, newline or semicolon
+      const matches = text.match(/\+?[0-9]{7,15}/g) || []
+      const unique = Array.from(new Set(matches))
+      setRecipients(unique)
+      toast(`✅ Found ${unique.length} unique numbers in ${file.name}`)
+    }
+    reader.readAsText(file)
+  }
+
+  async function pickContacts() {
+    if (!('contacts' in navigator)) {
+      toast("Contact picker not supported on this device.")
+      return
+    }
+    try {
+      const props = ['tel']
+      const opts = { multiple: true }
+      const contacts = await (navigator as any).contacts.select(props, opts)
+      if (contacts?.length) {
+        const numbers = contacts.map((c: any) => c.tel?.[0]?.replace(/\s/g, '')).filter(Boolean)
+        const unique = Array.from(new Set(numbers)) as string[]
+        setRecipients(unique)
+        toast(`✅ Selected ${unique.length} contacts`)
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
 
   async function broadcast() {
     if (sending) return
+    if (recipientCount === 0) {
+      toast("Please select or upload recipients first.")
+      return
+    }
+    if (!hasEnoughCredits) {
+      toast(`Insufficient credits. You need ${requiredCredits} for this broadcast.`)
+      return
+    }
+
     setSending(true)
-    toast(`Routing to ${recipients} numbers via Africa's Talking…`)
-    await new Promise(r => setTimeout(r, 2200))
-    toast(`✅ Confirmed! ${recipients} messages dispatched.`)
-    setSending(false)
+    try {
+      const token = await (window as any).Clerk?.session?.getToken({ template: 'supabase' })
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/broadcast/send`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token || ''}`
+        },
+        body: JSON.stringify({
+          recipients: recipients.length ? recipients : ['+254712345678'], // fallback for manual test
+          message: smsText
+        })
+      })
+
+      if (res.ok) {
+        toast(`✅ Success! ${recipientCount} messages sent.`)
+        await syncUser({}) // Refresh credits
+        setRecipients([])
+        setFileName('')
+      } else {
+        const err = await res.json()
+        toast(`Error: ${err.detail || 'Dispatch failed'}`)
+      }
+    } catch (e) {
+      toast("Broadcast failed. Check connection.")
+    } finally {
+      setSending(false)
+    }
   }
 
   return (
@@ -86,35 +159,63 @@ export default function BroadcastSMS({ prefilledText }: { prefilledText?: string
               const active = selected === i
               const Icon = opt.icon
               return (
-                <button
-                  key={i}
-                  onClick={() => setSelected(i)}
-                  className={cn(
-                    "flex items-center gap-3 p-3 rounded-xl border transition-all text-left",
-                    active 
-                      ? "bg-primary/10 border-primary/30" 
-                      : "bg-[#141E24] border-white/5 hover:border-white/10"
-                  )}
-                >
-                  <div className={cn(
-                    "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
-                    active ? "bg-primary text-background" : "bg-white/5 text-textMuted"
-                  )}>
-                    <Icon size={16} />
-                  </div>
-                  <div className="flex-1">
-                    <div className={cn("text-[13px] font-bold mb-0.5", active ? "text-primary" : "text-white")}>
-                      {opt.label}
+                <div key={i} className="flex flex-col gap-2">
+                  <button
+                    onClick={() => {
+                      setSelected(i)
+                      if (opt.id === 'manual') setRecipients([])
+                    }}
+                    className={cn(
+                      "flex items-center gap-3 p-3 rounded-xl border transition-all text-left w-full",
+                      active 
+                        ? "bg-primary/10 border-primary/30" 
+                        : "bg-[#141E24] border-white/5 hover:border-white/10"
+                    )}
+                  >
+                    <div className={cn(
+                      "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+                      active ? "bg-primary text-background" : "bg-white/5 text-textMuted"
+                    )}>
+                      <Icon size={16} />
                     </div>
-                    <div className="text-[11px] text-textMuted">Cost: {formatCurrency(opt.count * countryData.smsCost, countryData)}</div>
-                  </div>
-                  <div className={cn(
-                    "w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors",
-                    active ? "border-primary" : "border-white/20"
-                  )}>
-                    {active && <div className="w-2 h-2 rounded-full bg-primary" />}
-                  </div>
-                </button>
+                    <div className="flex-1">
+                      <div className={cn("text-[13px] font-bold mb-0.5", active ? "text-primary" : "text-white")}>
+                        {opt.label}
+                      </div>
+                      <div className="text-[11px] text-textMuted">
+                        {active && recipients.length > 0 ? `${recipients.length} selected` : 'Choose source'}
+                      </div>
+                    </div>
+                    <div className={cn(
+                      "w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors",
+                      active ? "border-primary" : "border-white/20"
+                    )}>
+                      {active && <div className="w-2 h-2 rounded-full bg-primary" />}
+                    </div>
+                  </button>
+
+                  {/* Actions for specific sources */}
+                  {active && opt.id === 'contacts' && (
+                    <button 
+                      onClick={pickContacts}
+                      className="mx-3 mb-2 py-2 px-3 rounded-lg bg-white/5 text-[12px] font-bold text-primary flex items-center justify-center gap-2 border border-white/5"
+                    >
+                      Pick from Phonebook
+                    </button>
+                  )}
+
+                  {active && opt.id === 'csv' && (
+                    <div className="mx-3 mb-2 flex flex-col gap-2">
+                      <label 
+                        className="py-2 px-3 rounded-lg bg-white/5 text-[12px] font-bold text-center flex items-center justify-center gap-2 border border-dashed border-white/20 cursor-pointer hover:bg-white/10 transition-colors"
+                      >
+                        <FileSpreadsheet size={14} />
+                        {fileName || 'Upload CSV or TXT'}
+                        <input type="file" accept=".csv,.txt" className="hidden" onChange={handleFileUpload} />
+                      </label>
+                    </div>
+                  )}
+                </div>
               )
             })}
           </div>
@@ -122,16 +223,24 @@ export default function BroadcastSMS({ prefilledText }: { prefilledText?: string
 
         {/* Cost estimate */}
         <div className="flex justify-between items-center p-4 rounded-xl bg-white/[0.03] border border-white/5 mt-2">
-          <span className="text-[12px] font-bold uppercase tracking-wider text-textSecondary">Execution Cost</span>
-          <span className="text-xl font-bold tracking-tight text-white">
-            {formatCurrency(cost, countryData)}
-          </span>
+          <div className="flex flex-col">
+            <span className="text-[12px] font-bold uppercase tracking-wider text-textSecondary">Execution Cost</span>
+            <span className="text-[10px] text-textMuted font-bold uppercase mt-1">1 Credit per 20 SMS</span>
+          </div>
+          <div className="flex flex-col items-end">
+            <span className="text-xl font-bold tracking-tight text-white">
+              {requiredCredits} AI Credits
+            </span>
+            <span className={cn("text-[10px] font-bold uppercase mt-1", hasEnoughCredits ? "text-primary" : "text-red-400")}>
+              {hasEnoughCredits ? 'Verified' : 'Insufficient'}
+            </span>
+          </div>
         </div>
 
         <button
           className="btn-primary"
           onClick={broadcast}
-          disabled={sending}
+          disabled={sending || !hasEnoughCredits || recipientCount === 0}
         >
           {sending ? (
             <>
@@ -140,7 +249,7 @@ export default function BroadcastSMS({ prefilledText }: { prefilledText?: string
             </>
           ) : (
             <>
-              Deploy {recipients} SMS
+              Deploy {recipientCount} SMS
               <Send size={18} />
             </>
           )}
