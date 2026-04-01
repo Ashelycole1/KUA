@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional
 
 from db import supabase_client
+from services.auth_deps import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -22,15 +23,26 @@ class AuthResponse(BaseModel):
 
 
 @router.post("/login", response_model=AuthResponse)
-async def login_user(req: AuthRequest):
-    if not req.phone:
-        raise HTTPException(status_code=400, detail="Phone number is required.")
+async def login_user(req: AuthRequest, decoded: dict = Depends(get_current_user)):
+    """
+    Login endpoint now requires a valid Clerk JWT.
+    It links the Clerk Identity to a Kua user record.
+    """
+    # Use 'sub' from clerk token as the unique identifier
+    clerk_id = decoded.get("sub")
+    if not clerk_id:
+        raise HTTPException(status_code=401, detail="Invalid token: missing sub claim.")
 
-    # upsert_user seamlessly fetches the wallet or creates a new one with 3 initial promo credits.
-    user_data = supabase_client.upsert_user(req.phone, req.currency_code)
+    # Cross-verify if needed (e.g., if the phone in the token matches the one in the request).
+    # Clerk tokens usually include phone_number if requested in the JWT template.
+    token_phone = decoded.get("phone_number")
+    # For now, we trust the verified clerk_id and associate it with the provided phone.
     
-    # Normally, you would optionally update their brand keywords/biz_name in DB here.
-    # We mainly need the credit balance returned.
+    user_data = supabase_client.upsert_user(
+        clerk_id=clerk_id, 
+        phone=req.phone, 
+        currency_code=req.currency_code
+    )
     
     return AuthResponse(
         phone_number=user_data.get("phone_number", req.phone),

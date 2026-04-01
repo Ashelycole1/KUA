@@ -31,7 +31,7 @@ function ProgressBar({ step }: { step: ObStep }) {
 }
 
 export default function Onboarding({ onComplete }: OnboardProps) {
-  const { user, setUser, toast } = useKua()
+  const { user, setUser, toast, syncUser } = useKua()
   const [step, setStep]   = useState<ObStep>(1)
   const [name, setName]   = useState('')
   const [type, setType]   = useState('')
@@ -76,22 +76,50 @@ export default function Onboarding({ onComplete }: OnboardProps) {
     }, 900)
   }
 
-  async function syncUserAuth(addCredits = 0) {
-    const { syncUser } = useKua()
+  async function syncUserAuth() {
     const fullPhone = `${prefix}${phone.trim()}`
+    if (!fullPhone) return
     await syncUser({ phone: fullPhone })
-    // We can add logic to check if credits were added if needed
   }
 
   async function momoFlow() {
+    if (paying) return
     setPaying(true)
-    toast(`Payment prompt sent to ${prefix}${phone.trim() || 'your number'}…`)
-    await new Promise(r => setTimeout(r, 2500))
-    await syncUserAuth(10)
-    setUser({ balance: 0 })
-    toast(`✅ Payment confirmed! 10 credits added via ${activeCountry.paymentMethod}.`)
-    await new Promise(r => setTimeout(r, 600))
-    onComplete()
+    const fullPhone = `${prefix}${phone.trim()}`
+    
+    try {
+      const token = await (window as any).Clerk.session?.getToken({ template: 'supabase' })
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/momo/initiate`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          phone: fullPhone,
+          amount: activeCountry.pricePer10,
+          currency: activeCountry.code
+        })
+      })
+
+      if (res.ok) {
+        toast(`Payment prompt sent to ${fullPhone}…`)
+        // Wait for user to pay on phone
+        await new Promise(r => setTimeout(r, 5000))
+        await syncUserAuth()
+        setUser({ balance: 0 })
+        toast(`✅ Payment processed! 10 credits added via ${activeCountry.paymentMethod}.`)
+        await new Promise(r => setTimeout(r, 800))
+        onComplete()
+      } else {
+        const error = await res.json()
+        toast(`Payment Error: ${error.detail || 'Synthesis interrupted'}`)
+      }
+    } catch (e) {
+      toast('Payment gateway offline. Please try again.')
+    } finally {
+      setPaying(false)
+    }
   }
 
   const HeaderBar = () => (
@@ -319,7 +347,7 @@ export default function Onboarding({ onComplete }: OnboardProps) {
                 disabled={paying}
                 onClick={async () => {
                   setPaying(true)
-                  await syncUserAuth(3)
+                  await syncUserAuth()
                   onComplete()
                 }}
               >

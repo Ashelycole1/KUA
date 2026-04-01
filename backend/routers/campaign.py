@@ -1,9 +1,10 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
 from pydantic import BaseModel
 from typing import Optional
 
 from services import gemini_service, docai_service, storage_service
 from db import supabase_client
+from services.auth_deps import get_current_user
 
 router = APIRouter(prefix="", tags=["campaign"])
 
@@ -26,14 +27,23 @@ class CampaignResponse(BaseModel):
 
 
 @router.post("/generate-campaign", response_model=CampaignResponse)
-async def generate_campaign(req: CampaignRequest):
-    phone = req.phone or ""
-
+async def generate_campaign(req: CampaignRequest, decoded: dict = Depends(get_current_user)):
+    """
+    Generate campaign. 
+    Verifies authenticated user and checks credits.
+    """
+    # ── Verify phone ownership ──
+    # Since we authenticated via Clerk, we can trust the decoded identity.
+    clerk_id = decoded.get("sub")
+    user = supabase_client.get_user_by_clerk_id(clerk_id)
+    if not user:
+         raise HTTPException(status_code=401, detail="User profile not initialized. Please call /auth/login first.")
+    
+    phone = user["phone_number"]
+    
     # ── Credit check ──
-    if phone:
-        user = supabase_client.get_user(phone)
-        if user and user["credit_balance"] <= 0:
-            raise HTTPException(status_code=403, detail="Insufficient credits. Please top up your wallet via the gateway.")
+    if user["credit_balance"] <= 0:
+        raise HTTPException(status_code=403, detail="Insufficient credits.")
     
     input_text = req.text or "General product promotion"
 
@@ -46,12 +56,9 @@ async def generate_campaign(req: CampaignRequest):
     )
 
     # ── Deduct 1 credit on success ──
-    credits_remaining = None
-    if phone:
-        supabase_client.deduct_credit(phone)
-        user = supabase_client.get_user(phone)
-        if user:
-            credits_remaining = user["credit_balance"]
+    supabase_client.deduct_credit(phone)
+    user = supabase_client.get_user(phone)
+    credits_remaining = user["credit_balance"] if user else None
 
     # ── Imagen Generation & Upload ──
     flyer_bytes = await gemini_service.generate_flyer(input_text)
@@ -60,13 +67,12 @@ async def generate_campaign(req: CampaignRequest):
         flyer_url = storage_service.upload_flyer(flyer_bytes, phone)
 
     # ── Store in History ──
-    if phone:
-        supabase_client.save_campaign(
-            phone=phone,
-            prompt=input_text,
-            variants=variants,
-            flyer_url=flyer_url or ""
-        )
+    supabase_client.save_campaign(
+        phone=phone,
+        prompt=input_text,
+        variants=variants,
+        flyer_url=flyer_url or ""
+    )
 
     return CampaignResponse(
         professional=variants.get("professional", ""),
@@ -78,10 +84,15 @@ async def generate_campaign(req: CampaignRequest):
     )
 
 
-@router.get("/campaign-history/{phone}", response_model=list[dict])
-async def get_history(phone: str):
-    """Retrieve campaign history for a user."""
-    history = supabase_client.get_campaign_history(phone)
+@router.get("/campaign-history", response_model=list[dict])
+async def get_history(decoded: dict = Depends(get_current_user)):
+    """Retrieve private campaign history for the authenticated user."""
+    clerk_id = decoded.get("sub")
+    user = supabase_client.get_user_by_clerk_id(clerk_id)
+    if not user:
+        return []
+        
+    history = supabase_client.get_campaign_history(user["phone_number"])
     return history
 
 
@@ -91,12 +102,16 @@ async def generate_campaign_image(
     phone: str = Form(""),
     biz_name: str = Form(""),
     brand_keywords: str = Form(""),
+    decoded: dict = Depends(get_current_user)
 ):
-    # ── Credit check ──
-    if phone:
-        user = supabase_client.get_user(phone)
-        if user and user["credit_balance"] <= 0:
-            raise HTTPException(status_code=403, detail="Insufficient credits.")
+    """Authenticated image-to-campaign generation."""
+    clerk_id = decoded.get("sub")
+    user = supabase_client.get_user_by_clerk_id(clerk_id)
+    if not user or user["phone_number"] != phone:
+         raise HTTPException(status_code=403, detail="Phone verification check failed.")
+
+    if user["credit_balance"] <= 0:
+        raise HTTPException(status_code=403, detail="Insufficient credits.")
 
     image_bytes = await file.read()
     mime_type = file.content_type or "image/jpeg"
@@ -113,15 +128,13 @@ async def generate_campaign_image(
         brand_keywords=brand_keywords,
     )
 
-    if phone:
-        supabase_client.deduct_credit(phone)
-        # Store in History
-        supabase_client.save_campaign(
-            phone=phone,
-            prompt=extracted_text,
-            variants=variants,
-            flyer_url=""
-        )
+    supabase_client.deduct_credit(phone)
+    supabase_client.save_campaign(
+        phone=phone,
+        prompt=extracted_text,
+        variants=variants,
+        flyer_url=""
+    )
 
     return CampaignResponse(
         professional=variants.get("professional", ""),
@@ -129,14 +142,3 @@ async def generate_campaign_image(
         sheng=variants.get("sheng", ""),
         sms=variants.get("sms", ""),
     )
-
-
-@router.post("/broadcast-sms")
-async def broadcast_sms(
-    recipients: list[str],
-    message: str,
-    phone: str = "",
-):
-    from services.at_service import send_bulk_sms
-    result = send_bulk_sms(recipients, message)
-    return result

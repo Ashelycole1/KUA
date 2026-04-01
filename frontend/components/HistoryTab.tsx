@@ -14,10 +14,15 @@ export default function HistoryTab() {
     async function fetchHistory() {
       if (!user.phone) return
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/campaign-history/${user.phone}`)
+        const token = await window.Clerk.session?.getToken({ template: 'supabase' })
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/campaign-history`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
         if (res.ok) {
           const data = await res.json()
-          setHistory(data)
+          setHistory(data || [])
         }
       } catch (err) {
         console.error("History fetch error:", err)

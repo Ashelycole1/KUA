@@ -12,6 +12,15 @@ def get_supabase() -> Client:
     return _client
 
 
+def get_user_by_clerk_id(clerk_id: str) -> dict | None:
+    try:
+        res = get_supabase().table("users").select("*").eq("clerk_id", clerk_id).single().execute()
+        return res.data
+    except Exception as e:
+        print(f"SUPABASE ERROR (get_user_by_clerk_id): {e}")
+        return None
+
+
 def get_user(phone: str) -> dict | None:
     try:
         res = get_supabase().table("users").select("*").eq("phone_number", phone).single().execute()
@@ -54,20 +63,32 @@ def add_credits(phone: str, amount: int = 10) -> bool:
         return False
 
 
-def upsert_user(phone: str, currency_code: str = 'KES') -> dict:
-    """Get or create a user, returning their record."""
+def upsert_user(clerk_id: str, phone: str, currency_code: str = 'KES') -> dict:
+    """Get or create a user by clerk_id, returning their record."""
     try:
-        user = get_user(phone)
+        user = get_user_by_clerk_id(clerk_id)
         if user:
+            # If phone changed or wasn't set, update it
+            if user.get("phone_number") != phone:
+                get_supabase().table("users").update({"phone_number": phone}).eq("clerk_id", clerk_id).execute()
+                user["phone_number"] = phone
             return user
-        get_supabase().table("users").insert(
-            {"phone_number": phone, "credit_balance": 3, "currency_code": currency_code}
+            
+        # Try to find by phone if clerk_id is missing (migration case)
+        user_by_phone = get_user(phone)
+        if user_by_phone and not user_by_phone.get("clerk_id"):
+            get_supabase().table("users").update({"clerk_id": clerk_id}).eq("phone_number", phone).execute()
+            user_by_phone["clerk_id"] = clerk_id
+            return user_by_phone
+
+        # Create new user
+        res = get_supabase().table("users").insert(
+            {"clerk_id": clerk_id, "phone_number": phone, "credit_balance": 3, "currency_code": currency_code}
         ).execute()
-        return {"phone_number": phone, "credit_balance": 3, "currency_code": currency_code}
+        return res.data[0] if res.data else {"clerk_id": clerk_id, "phone_number": phone, "credit_balance": 3, "currency_code": currency_code}
+        
     except Exception as e:
-        # If it fails, log it clearly so we can see why (missing keys, table not found, etc.)
         print(f"SUPABASE ERROR (upsert_user): {e}")
-        # Re-raise so the API returns 500
         raise e
 
 
@@ -90,7 +111,7 @@ def save_campaign(phone: str, prompt: str, variants: dict, flyer_url: str = "") 
 
 
 def get_campaign_history(phone: str) -> list:
-    """Fetch campaign history for a user."""
+    """Fetch campaign history for a user - currently still using phone for compatibility."""
     try:
         res = get_supabase().table("campaigns").select("*").eq("user_phone", phone).order("created_at", desc=True).execute()
         return res.data
