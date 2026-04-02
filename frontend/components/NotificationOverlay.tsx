@@ -50,7 +50,7 @@ export default function NotificationOverlay({ isOpen, onClose }: NotificationOve
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="absolute top-16 right-6 md:right-12 w-[calc(100vw-48px)] md:w-80 bg-[#141E24]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-50 overflow-hidden"
+            className="fixed top-20 right-6 md:right-12 w-[calc(100vw-48px)] md:w-80 bg-[#141E24]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_30px_60px_rgba(0,0,0,0.6)] z-[100] overflow-hidden"
           >
             <div className="p-4 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
               <div className="flex items-center gap-2">

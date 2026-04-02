@@ -82,8 +82,8 @@ export default function MainApp() {
   )
 
   const BottomDock = () => (
-    <div className="fixed bottom-6 left-0 right-0 px-6 z-50 md:hidden pointer-events-none">
-      <div className="bg-[#141E24]/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-1.5 flex justify-between shadow-[0_20px_40px_rgba(0,0,0,0.8)] pointer-events-auto">
+    <div className="fixed bottom-6 left-0 right-0 px-4 z-[60] md:hidden pointer-events-none">
+      <div className="bg-[#141E24]/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-1 flex justify-between shadow-[0_20px_50px_rgba(0,0,0,0.9)] pointer-events-auto max-w-[400px] mx-auto overflow-hidden">
         {NAV.map(n => {
           const active = tab === n.id
           const Icon = n.icon
@@ -91,7 +91,7 @@ export default function MainApp() {
             <button
               key={n.id}
               onClick={() => setTab(n.id)}
-              className="relative flex-1 flex flex-col items-center gap-1.5 py-3 rounded-xl transition-colors z-10"
+              className="relative flex-1 flex flex-col items-center gap-1 py-2.5 rounded-xl transition-colors z-10 min-w-0"
             >
               {active && (
                 <motion.div 
@@ -138,8 +138,6 @@ export default function MainApp() {
         <div className="md:max-w-3xl md:mx-auto w-full px-0 md:px-12 flex flex-col flex-1 pb-32 md:pb-12">
           
           <WalletHeader onTopUp={handleTopUp} onNotificationClick={() => setIsNotifOpen(true)} />
-
-          <NotificationOverlay isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
 
           <AnimatePresence mode="wait">
             <motion.div
@@ -231,6 +229,9 @@ export default function MainApp() {
 
       {/* ── Mobile Bottom Dock (Phones Only) ── */}
       <BottomDock />
+      
+      {/* Global Overlays */}
+      <NotificationOverlay isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
     </div>
   )
 }
