@@ -19,7 +19,6 @@ class AuthRequest(BaseModel):
 class AuthResponse(BaseModel):
     phone_number: str
     credit_balance: int
-    balance: float
     currency_code: str
 
 
@@ -48,6 +47,5 @@ async def login_user(req: AuthRequest, decoded: dict = Depends(get_current_user)
     return AuthResponse(
         phone_number=user_data.get("phone_number", req.phone),
         credit_balance=user_data.get("credit_balance", 0),
-        balance=user_data.get("balance", 0.0),
         currency_code=user_data.get("currency_code", req.currency_code)
     )

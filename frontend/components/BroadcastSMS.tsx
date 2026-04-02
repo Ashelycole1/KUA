@@ -30,9 +30,8 @@ export default function BroadcastSMS({ prefilledText }: { prefilledText?: string
   const [fileName, setFileName] = useState('')
 
   const recipientCount = recipients.length || RECIPIENT_OPTIONS[selected].count
-  const smsRate = 2.5
-  const requiredBalance = recipientCount * smsRate
-  const hasEnoughBalance = user.balance >= requiredBalance
+  const requiredCredits = Math.ceil(recipientCount / 20)
+  const hasEnoughCredits = user.credits >= requiredCredits
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -53,11 +52,23 @@ export default function BroadcastSMS({ prefilledText }: { prefilledText?: string
 
   async function pickContacts() {
     if (!('contacts' in navigator)) {
-      toast("Contact picker not supported on this device.")
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+      if (isIOS) {
+        toast("💡 iOS Tip: Please use 'Manual Entry' or 'Upload CSV' as Safari doesn't support phonebook access yet.")
+        setSelected(2) // Switch to manual
+      } else {
+        toast("Contact picker not supported on this device.")
+      }
       return
     }
     try {
-      const props = ['name', 'tel']
+      // Use only 'tel' for maximum compatibility, then 'name' if supported
+      const props = ['tel']
+      if ((navigator as any).contacts.getProperties) {
+         const supported = await (navigator as any).contacts.getProperties()
+         if (supported.includes('name')) props.push('name')
+      }
+      
       const opts = { multiple: true }
       const contacts = await (navigator as any).contacts.select(props, opts)
       if (contacts && contacts.length > 0) {
@@ -81,8 +92,8 @@ export default function BroadcastSMS({ prefilledText }: { prefilledText?: string
       toast("Please select or upload recipients first.")
       return
     }
-    if (!hasEnoughBalance) {
-      toast(`Insufficient balance. You need ${formatCurrency(requiredBalance, countryData)} for this broadcast.`)
+    if (!hasEnoughCredits) {
+      toast(`Insufficient credits. You need ${requiredCredits} Credits for this broadcast.`)
       return
     }
 
@@ -226,26 +237,11 @@ export default function BroadcastSMS({ prefilledText }: { prefilledText?: string
           </div>
         </div>
 
-        {/* Cost estimate */}
-        <div className="flex justify-between items-center p-4 rounded-xl bg-white/[0.03] border border-white/5 mt-2">
-          <div className="flex flex-col">
-            <span className="text-[12px] font-bold uppercase tracking-wider text-textSecondary">Execution Cost</span>
-            <span className="text-[10px] text-textMuted font-bold uppercase mt-1">{formatCurrency(smsRate, countryData)} per SMS</span>
-          </div>
-          <div className="flex flex-col items-end">
-            <span className="text-xl font-bold tracking-tight text-white">
-              {formatCurrency(requiredBalance, countryData)}
-            </span>
-            <span className={cn("text-[10px] font-bold uppercase mt-1", hasEnoughBalance ? "text-primary" : "text-red-400")}>
-              {hasEnoughBalance ? 'Verified' : 'Insufficient Balance'}
-            </span>
-          </div>
-        </div>
 
         <button
           className="btn-primary"
           onClick={broadcast}
-          disabled={sending || !hasEnoughBalance || recipientCount === 0}
+          disabled={sending || !hasEnoughCredits || recipientCount === 0}
         >
           {sending ? (
             <>
