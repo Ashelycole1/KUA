@@ -33,7 +33,7 @@ export default function NotificationOverlay({ isOpen, onClose }: NotificationOve
     },
     user.credits <= 2 ? {
       id: 3,
-      title: 'Low Credit Balance',
+      title: 'Low AI Credits',
       desc: `You have ${user.credits} credits left. Please top up soon.`,
       icon: CreditCard,
       type: 'warning',

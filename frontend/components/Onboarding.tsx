@@ -107,7 +107,6 @@ export default function Onboarding({ onComplete }: OnboardProps) {
         // Wait for user to pay on phone
         await new Promise(r => setTimeout(r, 5000))
         await syncUserAuth()
-        setUser({ balance: 0 })
         toast(`✅ Payment processed! 10 credits added via ${activeCountry.paymentMethod}.`)
         await new Promise(r => setTimeout(r, 800))
         onComplete()
