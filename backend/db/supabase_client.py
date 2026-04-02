@@ -11,6 +11,9 @@ def get_supabase() -> Client:
         _client = create_client(url, key)
     return _client
 
+# Global instance for easier import in routers
+supabase = get_supabase()
+
 
 def get_user_by_clerk_id(clerk_id: str) -> dict | None:
     try:
