@@ -30,8 +30,9 @@ export default function BroadcastSMS({ prefilledText }: { prefilledText?: string
   const [fileName, setFileName] = useState('')
 
   const recipientCount = recipients.length || RECIPIENT_OPTIONS[selected].count
-  const requiredCredits = Math.ceil(recipientCount / 20)
-  const hasEnoughCredits = user.credits >= requiredCredits
+  const smsRate = 2.5
+  const requiredBalance = recipientCount * smsRate
+  const hasEnoughBalance = user.balance >= requiredBalance
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -80,8 +81,8 @@ export default function BroadcastSMS({ prefilledText }: { prefilledText?: string
       toast("Please select or upload recipients first.")
       return
     }
-    if (!hasEnoughCredits) {
-      toast(`Insufficient credits. You need ${requiredCredits} for this broadcast.`)
+    if (!hasEnoughBalance) {
+      toast(`Insufficient balance. You need ${formatCurrency(requiredBalance, countryData)} for this broadcast.`)
       return
     }
 
@@ -229,14 +230,14 @@ export default function BroadcastSMS({ prefilledText }: { prefilledText?: string
         <div className="flex justify-between items-center p-4 rounded-xl bg-white/[0.03] border border-white/5 mt-2">
           <div className="flex flex-col">
             <span className="text-[12px] font-bold uppercase tracking-wider text-textSecondary">Execution Cost</span>
-            <span className="text-[10px] text-textMuted font-bold uppercase mt-1">1 Token per 20 SMS</span>
+            <span className="text-[10px] text-textMuted font-bold uppercase mt-1">{formatCurrency(smsRate, countryData)} per SMS</span>
           </div>
           <div className="flex flex-col items-end">
             <span className="text-xl font-bold tracking-tight text-white">
-              {requiredCredits} Kua Tokens
+              {formatCurrency(requiredBalance, countryData)}
             </span>
-            <span className={cn("text-[10px] font-bold uppercase mt-1", hasEnoughCredits ? "text-primary" : "text-red-400")}>
-              {hasEnoughCredits ? 'Verified' : 'Insufficient'}
+            <span className={cn("text-[10px] font-bold uppercase mt-1", hasEnoughBalance ? "text-primary" : "text-red-400")}>
+              {hasEnoughBalance ? 'Verified' : 'Insufficient Balance'}
             </span>
           </div>
         </div>
@@ -244,7 +245,7 @@ export default function BroadcastSMS({ prefilledText }: { prefilledText?: string
         <button
           className="btn-primary"
           onClick={broadcast}
-          disabled={sending || !hasEnoughCredits || recipientCount === 0}
+          disabled={sending || !hasEnoughBalance || recipientCount === 0}
         >
           {sending ? (
             <>

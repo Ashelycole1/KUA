@@ -30,6 +30,23 @@ def get_user(phone: str) -> dict | None:
         return None
 
 
+def deduct_balance(clerk_id: str, amount: float) -> bool:
+    try:
+        res = get_supabase().table("users").select("balance").eq("clerk_id", clerk_id).single().execute()
+        if not res.data:
+            return False
+        current = float(res.data.get("balance", 0.0))
+        if current < amount:
+            return False
+        get_supabase().table("users").update(
+            {"balance": current - amount}
+        ).eq("clerk_id", clerk_id).execute()
+        return True
+    except Exception as e:
+        print(f"SUPABASE ERROR (deduct_balance): {e}")
+        return False
+
+
 def deduct_credit(phone: str) -> bool:
     try:
         user = get_user(phone)
@@ -61,6 +78,19 @@ def add_credits(phone: str, amount: int = 10) -> bool:
     except Exception as e:
         print(f"SUPABASE ERROR (add_credits): {e}")
         return False
+def add_balance(phone: str, amount: float) -> bool:
+    try:
+        user = get_user(phone)
+        if user:
+            new_bal = float(user.get("balance", 0.0)) + amount
+            get_supabase().table("users").update(
+                {"balance": new_bal}
+            ).eq("phone_number", phone).execute()
+            return True
+        return False
+    except Exception as e:
+        print(f"SUPABASE ERROR (add_balance): {e}")
+        return False
 
 
 def upsert_user(clerk_id: str, phone: str, currency_code: str = 'KES') -> dict:
@@ -83,9 +113,9 @@ def upsert_user(clerk_id: str, phone: str, currency_code: str = 'KES') -> dict:
 
         # Create new user
         res = get_supabase().table("users").insert(
-            {"clerk_id": clerk_id, "phone_number": phone, "credit_balance": 3, "currency_code": currency_code}
+            {"clerk_id": clerk_id, "phone_number": phone, "credit_balance": 3, "balance": 0.0, "currency_code": currency_code}
         ).execute()
-        return res.data[0] if res.data else {"clerk_id": clerk_id, "phone_number": phone, "credit_balance": 3, "currency_code": currency_code}
+        return res.data[0] if res.data else {"clerk_id": clerk_id, "phone_number": phone, "credit_balance": 3, "balance": 0.0, "currency_code": currency_code}
         
     except Exception as e:
         print(f"SUPABASE ERROR (upsert_user): {e}")

@@ -36,7 +36,7 @@ export default function WalletHeader({ onTopUp, onNotificationClick }: WalletHea
         <div className="glass-panel p-3.5 flex flex-col justify-center">
           <div className="flex items-center gap-1.5 mb-1 opacity-70">
             <Wallet size={12} className="text-textSecondary" />
-            <span className="text-[11px] font-bold uppercase tracking-wider text-textSecondary">Balance</span>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-textSecondary">Wallet Balance</span>
           </div>
           <div className="text-xl font-bold text-white tracking-tight">
             {formatCurrency(user.balance, countryData)}
@@ -51,10 +51,10 @@ export default function WalletHeader({ onTopUp, onNotificationClick }: WalletHea
           <div className="absolute top-0 right-0 w-16 h-16 bg-primary/20 blur-xl rounded-full group-hover:bg-primary/30 transition-all" />
           <div className="flex items-center gap-1.5 mb-1 opacity-90 relative z-10">
             <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-glow" />
-            <span className="text-[11px] font-bold uppercase tracking-wider text-primary">Credits</span>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-primary">AI Credits</span>
           </div>
           <div className="text-xl font-bold text-primary tracking-tight relative z-10">
-            {user.credits} Tokens
+            {user.credits} Gens
           </div>
         </button>
       </div>

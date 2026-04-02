@@ -127,6 +127,7 @@ export function KuaProvider({ children }: { children: ReactNode }) {
         const data = await res.json()
         setUser({
           credits: data.credit_balance,
+          balance: data.balance,
           phone: data.phone_number,
         })
       }
