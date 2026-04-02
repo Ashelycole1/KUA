@@ -150,7 +150,7 @@ export default function CampaignStudio() {
         setResult(data)
         if (data.credits_remaining !== undefined) setUser({ credits: data.credits_remaining })
       } else if (res.status === 403) {
-        toast(`Action Denied: Top up ${formatCurrency(countryData.pricePer10, countryData)}`)
+        toast(`Action Denied: Top up ${formatCurrency(countryData.pricePer10, countryData)} for Tokens`)
         setLoading(false)
         return
       } else {

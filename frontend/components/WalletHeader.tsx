@@ -6,9 +6,10 @@ import { formatCurrency } from '@/lib/currency'
 
 interface WalletHeaderProps {
   onTopUp?: () => void
+  onNotificationClick?: () => void
 }
 
-export default function WalletHeader({ onTopUp }: WalletHeaderProps) {
+export default function WalletHeader({ onTopUp, onNotificationClick }: WalletHeaderProps) {
   const { user, countryData } = useKua()
 
   return (
@@ -18,7 +19,10 @@ export default function WalletHeader({ onTopUp }: WalletHeaderProps) {
         <div className="font-bold text-2xl tracking-tight text-white flex items-center gap-1">
           Kua<span className="text-primary text-3xl leading-none">.</span>
         </div>
-        <button className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 relative transition-all hover:bg-white/10">
+        <button 
+          onClick={onNotificationClick}
+          className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 relative transition-all hover:bg-white/10"
+        >
           <Bell size={18} className="text-textSecondary" />
           {user.credits <= 2 && (
             <span className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-secondary border-2 border-background" />
@@ -50,7 +54,7 @@ export default function WalletHeader({ onTopUp }: WalletHeaderProps) {
             <span className="text-[11px] font-bold uppercase tracking-wider text-primary">Credits</span>
           </div>
           <div className="text-xl font-bold text-primary tracking-tight relative z-10">
-            {user.credits} AI Gens
+            {user.credits} Tokens
           </div>
         </button>
       </div>

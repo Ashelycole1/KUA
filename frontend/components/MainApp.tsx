@@ -20,6 +20,7 @@ const NAV = [
   { id: 'studio' as Tab,    label: 'Studio',    icon: Wand2 },
   { id: 'broadcast' as Tab, label: 'Broadcast', icon: Send },
   { id: 'history' as Tab,   label: 'History',   icon: Clock },
+  { id: 'settings' as Tab,  label: 'Settings',  icon: Settings },
 ]
 
 export default function MainApp() {
@@ -132,12 +133,13 @@ export default function MainApp() {
               <span className="absolute top-2.5 right-2.5 w-3 h-3 rounded-full bg-secondary border-2 border-background" />
             )}
           </button>
-          <NotificationOverlay isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
         </div>
 
         <div className="md:max-w-3xl md:mx-auto w-full px-0 md:px-12 flex flex-col flex-1 pb-32 md:pb-12">
           
-          <WalletHeader onTopUp={handleTopUp} />
+          <WalletHeader onTopUp={handleTopUp} onNotificationClick={() => setIsNotifOpen(true)} />
+
+          <NotificationOverlay isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
 
           <AnimatePresence mode="wait">
             <motion.div

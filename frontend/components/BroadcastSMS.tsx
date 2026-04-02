@@ -56,14 +56,18 @@ export default function BroadcastSMS({ prefilledText }: { prefilledText?: string
       return
     }
     try {
-      const props = ['tel']
+      const props = ['name', 'tel']
       const opts = { multiple: true }
       const contacts = await (navigator as any).contacts.select(props, opts)
-      if (contacts?.length) {
-        const numbers = contacts.map((c: any) => c.tel?.[0]?.replace(/\s/g, '')).filter(Boolean)
+      if (contacts && contacts.length > 0) {
+        const numbers = contacts.flatMap((c: any) => 
+          (c.tel || []).map((t: string) => t.replace(/[\s\-\(\)]/g, ''))
+        ).filter(Boolean)
         const unique = Array.from(new Set(numbers)) as string[]
         setRecipients(unique)
         toast(`✅ Selected ${unique.length} contacts`)
+      } else {
+        toast("No contacts selected.")
       }
     } catch (err) {
       console.error(err)
@@ -225,11 +229,11 @@ export default function BroadcastSMS({ prefilledText }: { prefilledText?: string
         <div className="flex justify-between items-center p-4 rounded-xl bg-white/[0.03] border border-white/5 mt-2">
           <div className="flex flex-col">
             <span className="text-[12px] font-bold uppercase tracking-wider text-textSecondary">Execution Cost</span>
-            <span className="text-[10px] text-textMuted font-bold uppercase mt-1">1 Credit per 20 SMS</span>
+            <span className="text-[10px] text-textMuted font-bold uppercase mt-1">1 Token per 20 SMS</span>
           </div>
           <div className="flex flex-col items-end">
             <span className="text-xl font-bold tracking-tight text-white">
-              {requiredCredits} AI Credits
+              {requiredCredits} Kua Tokens
             </span>
             <span className={cn("text-[10px] font-bold uppercase mt-1", hasEnoughCredits ? "text-primary" : "text-red-400")}>
               {hasEnoughCredits ? 'Verified' : 'Insufficient'}
