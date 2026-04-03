@@ -1,6 +1,6 @@
 # Kua – The AI Marketing Engine for the African Merchant
 
-Kua is a full-stack, AI-powered marketing campaign platform designed specifically for mobile-first micro-merchants across Africa. It dynamically localizes pricing, currency formats, and payment methods (M-Pesa, MTN MoMo, Bank Transfers) based on the user's country code, while combining a Progressive Web App (PWA) frontend with a FastAPI backend powered by Google's Gemini 2.5 Flash, Document AI, and Imagen.
+Kua is a full-stack, AI-powered marketing campaign platform designed specifically for mobile-first micro-merchants across Africa. It dynamically localizes pricing, currency formats, and payment methods (M-Pesa, MTN MoMo, Bank Transfers) based on the user's country code, while combining a Progressive Web App (PWA) frontend with a FastAPI backend powered by Google's Gemini 2.5 Flash, Document AI, and Imagen.Beyond automation, Kua empowers micro-merchants through a specialized 12-module educational ecosystem built directly into the platform. We don't just provide the tools; we build the talent.
 
 ## Architecture
 
