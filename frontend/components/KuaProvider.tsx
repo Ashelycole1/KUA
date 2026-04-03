@@ -7,6 +7,7 @@ interface User {
   bizType: string
   brandKw: string
   credits: number
+  balance: number
   countryCode: string
 }
 
@@ -28,6 +29,7 @@ const defaultUser: User = {
   bizType: '',
   brandKw: 'Fresh, Affordable, Daily, Trusted, Local',
   credits: 0,
+  balance: 0,
   countryCode: 'KE',
 }
 
@@ -125,6 +127,7 @@ export function KuaProvider({ children }: { children: ReactNode }) {
         const data = await res.json()
         setUser({
           credits: data.credit_balance,
+          balance: data.balance,
           phone: data.phone_number,
         })
       }
