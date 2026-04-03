@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Camera, Sparkles, Copy, MessageCircle, ExternalLink, Download, X, ImageIcon } from 'lucide-react'
+import { Camera, Sparkles, Copy, MessageCircle, ExternalLink, Download, X, ImageIcon, ArrowRight } from 'lucide-react'
 import { useKua } from './KuaProvider'
 import { formatCurrency } from '@/lib/currency'
 import { cn } from '@/lib/utils'
@@ -289,13 +289,45 @@ export default function CampaignStudio() {
       </div>
 
       {/* ── Generate ── */}
-      <button className="btn-primary" onClick={generate} disabled={loading}>
-        {loading ? (
-          <div className="flex items-center gap-2"><span className="spin-dark" />Synthesizing...</div>
-        ) : (
-          <div className="flex items-center gap-2">Initiate Synthesis <Sparkles size={18} /></div>
+      <div className="flex flex-col gap-2">
+        <button 
+          className={cn(
+            "btn-primary relative overflow-hidden group",
+            user.credits <= 0 && "bg-secondary text-white shadow-[0_4px_20px_rgba(255,107,0,0.3)]"
+          )} 
+          onClick={generate} 
+          disabled={loading}
+        >
+          {loading ? (
+            <div className="flex items-center gap-3">
+              <span className="spin-dark border-t-background" />
+              <span className="tracking-wide">Synthesizing DNA...</span>
+            </div>
+          ) : user.credits <= 0 ? (
+            <div className="flex items-center gap-2">
+              Top Up for Credits <ArrowRight size={18} />
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="relative z-10">Initiate Synthesis</span>
+              <Sparkles size={18} className="relative z-10" />
+            </div>
+          )}
+          
+          {/* Price badge inside the button used to clarify cost */}
+          {!loading && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-full bg-black/20 text-[10px] font-black tracking-widest uppercase border border-white/10">
+              {user.credits > 0 ? "1 Credit" : formatCurrency(countryData.pricePer10, countryData)}
+            </div>
+          )}
+        </button>
+        
+        {user.credits <= 0 && (
+          <p className="text-[10px] text-center text-secondary font-bold uppercase tracking-widest animate-pulse">
+            Insufficient Credits — Tap to Fund Wallet
+          </p>
         )}
-      </button>
+      </div>
 
       {/* ── Results ── */}
       <AnimatePresence>

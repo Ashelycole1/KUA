@@ -103,7 +103,7 @@
 /* Base Toast Animation */
 .toast-bar {
   position: fixed;
-  bottom: 85px;
+  top: 24px;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(0, 255, 163, 0.15);
