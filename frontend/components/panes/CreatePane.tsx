@@ -8,27 +8,33 @@ import { formatCurrency } from '@/lib/currency'
 import { cn } from '@/lib/utils'
 
 interface CampaignResult {
-  professional: string
-  hype: string
-  sheng: string
-  sms: string
+  whatsapp: string
+  social: string
+  ambassador: string
   flyerUrl?: string
 }
 
 const TONES = [
-  { key: 'hype',         label: 'Hype Engine',      eg: 'High energy, urgent calls to action' },
-  { key: 'professional', label: 'Corporate Trust',  eg: 'Formal tone for high-ticket items'   },
-  { key: 'sheng',        label: 'Local Sheng',      eg: 'Relatable, community-driven language'   },
-  { key: 'sms',          label: 'Micro SMS',        eg: 'Under 160 characters, direct delivery'      },
+  { key: 'warm',   label: 'Warm & Friendly', eg: 'Community focus, helpful' },
+  { key: 'urgent', label: 'Urgent Deal',     eg: 'Flash sale, limited stock' },
+  { key: 'local',  label: 'Local Slang',     eg: 'Sheng/Vernacular relatable' },
+  { key: 'formal', label: 'Professional',    eg: 'Corporate, serious biz' },
+] as const
+
+const LANGUAGES = [
+  { key: 'en', label: 'English' },
+  { key: 'zu', label: 'Zulu' },
+  { key: 'sw', label: 'Swahili' },
+  { key: 'yo', label: 'Yoruba' },
 ] as const
 
 type ToneKey = typeof TONES[number]['key']
+type LangKey = typeof LANGUAGES[number]['key']
 
-const MOCK: Record<ToneKey, string> = {
-  hype:         "🔥🔥 URBAN DRIP ARRIVED!! Fresh stock of kicks just landed. CRAZY discounts for the next 24 hours. Don't be left out — pull up or WhatsApp 0712345678 to secure your pair NOW! 👟📉",
-  professional: "We are pleased to announce the arrival of our premium footwear collection. Available now at competitive rates. Contact us today via 0712345678 to place an order.",
-  sheng:        "Wadau! Kicks mpya zimefika mtaani. Bei ni ya ku-tackle economy! Tupigie 0712345678 tufanye biz. 👟🔥",
-  sms:          "NEW STOCK: Premium sneakers. Limited sizes available. Unbeatable prices today. Call/WhatsApp 0712345678 now to order!",
+const MOCK: Record<string, string> = {
+  whatsapp:   "Hey fam! Fresh stock arrived at the shop. Quality you can trust! WhatsApp 0712345678 to secure your pair now! 👟📉",
+  social:     "🔥🔥 NEW ARRIVALS!! Fresh kicks just landed. CRAZY discounts for the next 24 hours. Don't be left out — visit us today! 👟🔥",
+  ambassador: "Guys! My friend at the shop has a crazy deal — fresh sneakers just landed. Check it out here: kua.link/amb-thandi-apr 🔥",
 }
 
 const RECIPIENT_OPTIONS = [
@@ -42,7 +48,9 @@ export default function CreatePane() {
   
   // ── Studio State ──
   const [input, setInput]               = useState('')
-  const [tone, setTone]                 = useState<ToneKey>('hype')
+  const [tone, setTone]                 = useState<ToneKey>('warm')
+  const [lang, setLang]                 = useState<LangKey>('en')
+  const [customBiz, setCustomBiz]       = useState(user.bizName || '')
   const [loading, setLoading]           = useState(false)
   const [result, setResult]             = useState<CampaignResult | null>(null)
   const [injectedImage, setInjectedImage] = useState<string | null>(null)
@@ -58,6 +66,11 @@ export default function CreatePane() {
   const recipientCount = recipients.length || RECIPIENT_OPTIONS[selectedOpt].count
   const requiredCredits = Math.ceil(recipientCount / 20)
   const hasEnoughCredits = user.credits >= requiredCredits
+
+  // Reactive BizName Sync
+  React.useEffect(() => {
+    if (!customBiz && user.bizName) setCustomBiz(user.bizName)
+  }, [user.bizName])
 
   // ── Image Injection Logic ──
   function handleInjectImage() {
@@ -143,8 +156,10 @@ export default function CreatePane() {
       const body: Record<string, unknown> = {
         text,
         phone: user.phone,
-        biz_name: user.bizName,
+        biz_name: customBiz || user.bizName,
         brand_keywords: user.brandKw,
+        tone: tone,
+        language: lang
       }
       if (injectedImage) body.image = injectedImage
 
@@ -163,17 +178,23 @@ export default function CreatePane() {
 
       if (res.ok) {
         const data = await res.json()
-        setResult(data)
+        // If backend doesn't return the unified categories yet, we map from the old tones temporarily
+        setResult({
+          whatsapp: data.whatsapp || data.sheng || data.sms || data.hype || MOCK.whatsapp,
+          social: data.social || data.hype || data.professional || MOCK.social,
+          ambassador: data.ambassador || data.sheng || MOCK.ambassador,
+          flyerUrl: data.flyerUrl
+        })
         if (data.credits_remaining !== undefined) setUser({ credits: data.credits_remaining })
       } else if (res.status === 403) {
         toast(`Action Denied: Top up ${formatCurrency(countryData.pricePer10, countryData)} for AI Credits`)
         setLoading(false)
         return
       } else {
-        setResult({ ...MOCK, flyerUrl: undefined })
+        setResult({ ...MOCK, flyerUrl: undefined } as any)
       }
     } catch {
-      setResult({ ...MOCK, flyerUrl: undefined })
+      setResult({ ...MOCK, flyerUrl: undefined } as any)
     }
 
     setLoading(false)
@@ -279,12 +300,17 @@ export default function CreatePane() {
     window.open('whatsapp://send?text=' + encodeURIComponent(text), '_blank')
   }
 
+  const activeText = result ? result.whatsapp : ''
+
   function copyText(text: string) {
     navigator.clipboard?.writeText(text).catch(() => {})
     toast('Copied to clipboard')
   }
 
-  const activeText = result ? result[tone] : ''
+  function copyLink() {
+    navigator.clipboard?.writeText(`https://kua.link/amb-${(user.bizName || 'shop').toLowerCase().replace(/\s/g,'-')}`).catch(() => {})
+    toast('Ambassador link copied!')
+  }
 
   return (
     <div className="flex flex-col gap-6 pb-12 animate-fade-in relative z-10">
@@ -371,6 +397,36 @@ export default function CreatePane() {
           </div>
         </div>
 
+        {/* ── Biz Name Override ── */}
+        <div className="flex flex-col gap-2 mt-4">
+          <label className="label-sm">Business Name</label>
+          <input
+            className="w-full bg-[#141E24] border border-white/5 rounded-xl p-3.5 text-[14px] text-white outline-none focus:border-primary/40 transition-colors"
+            placeholder="e.g. Mama Zara's Fresh Produce"
+            value={customBiz}
+            onChange={e => setCustomBiz(e.target.value)}
+          />
+        </div>
+
+        {/* ── Language Selector ── */}
+        <div className="flex flex-col gap-2 mt-4">
+          <label className="label-sm">Output Language</label>
+          <div className="flex flex-wrap gap-2">
+            {LANGUAGES.map(l => (
+              <button
+                key={l.key}
+                onClick={() => setLang(l.key)}
+                className={cn(
+                  "px-4 py-2 rounded-full border text-[11px] font-bold uppercase tracking-widest transition-all",
+                  lang === l.key ? "bg-primary text-background border-primary" : "bg-white/5 border-white/10 text-textMuted"
+                )}
+              >
+                {l.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* ── Tone Matrix ── */}
         <div className="flex flex-col gap-2 mt-4">
           <label className="label-sm">Semantic Calibration</label>
@@ -434,44 +490,53 @@ export default function CreatePane() {
           >
             <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-primary/30 to-transparent mb-2" />
 
-            {/* Generated Output */}
+            {/* Generated Outputs - UNIFIED CHANNEL VIEW */}
             <div>
-              <label className="label-sm flex items-center justify-between mb-2">
-                <span>Output Stream</span>
-                <span className="text-primary tracking-widest bg-primary/10 px-2 py-0.5 rounded-full text-[9px] border border-primary/20">SUCCESS</span>
-              </label>
+              <div className="heading-sec !text-[16px] mb-4">Your campaign — ready to go</div>
 
-              <div className="glass-panel overflow-hidden border-primary/20 bg-primary/[0.02]">
-                <div className="p-4 flex flex-col gap-4">
-                  <div className="text-[14px] leading-relaxed text-white">{activeText}</div>
-                  <div className="flex gap-2 pt-4 border-t border-white/5">
-                    <button
-                      className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-white/5 text-white font-bold text-[12px] border border-white/10 uppercase hover:bg-white/10 transition-all"
-                      onClick={() => shareWA(activeText)}
-                    >
-                      <MessageCircle size={14} /> Send WA
-                    </button>
-                    <button
-                      className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-white/5 text-white font-bold text-[12px] border border-white/10 uppercase hover:bg-white/10 transition-all"
-                      onClick={() => copyText(activeText)}
-                    >
-                      <Copy size={14} /> Copy
-                    </button>
+              {/* 1. WhatsApp / SMS */}
+              <div className="flex flex-col gap-2 mb-6">
+                <label className="label-sm flex items-center justify-between">
+                  <span>WhatsApp / SMS Channel</span>
+                  <span className="text-[9px] font-bold text-primary tracking-widest">DIRECT</span>
+                </label>
+                <div className="glass-panel p-4 bg-primary/[0.03] border-primary/20">
+                  <div className="text-[14px] leading-relaxed text-white mb-4">{result.whatsapp}</div>
+                  <div className="flex gap-2">
+                    <button onClick={() => shareWA(result.whatsapp)} className="btn-secondary !py-2 !text-[11px] flex-1 gap-2"><MessageCircle size={14} /> Send WA</button>
+                    <button onClick={() => copyText(result.whatsapp)} className="btn-secondary !py-2 !text-[11px] flex-1 gap-2"><Copy size={14} /> Copy</button>
                   </div>
                 </div>
-                <div className="flex p-1.5 gap-1 bg-black/40 border-t border-white/5">
-                  {TONES.map(t => (
-                    <button
-                      key={t.key}
-                      onClick={() => setTone(t.key)}
-                      className={cn(
-                        'flex-1 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all',
-                        tone === t.key ? 'bg-primary text-background' : 'text-textMuted hover:text-white hover:bg-white/5'
-                      )}
-                    >
-                      {t.key}
-                    </button>
-                  ))}
+              </div>
+
+              {/* 2. Social / Ads */}
+              <div className="flex flex-col gap-2 mb-6">
+                <label className="label-sm flex items-center justify-between">
+                  <span>Facebook / Instagram Caption</span>
+                  <span className="text-[9px] font-bold text-kAmberDark tracking-widest">SOCIAL</span>
+                </label>
+                <div className="glass-panel p-4 bg-kAmber/5 border-kAmber/20">
+                  <div className="text-[14px] leading-relaxed text-white mb-4">{result.social}</div>
+                  <button onClick={() => copyText(result.social)} className="btn-secondary !py-2 !text-[11px] w-full gap-2"><Copy size={14} /> Copy Caption</button>
+                </div>
+              </div>
+
+              {/* 3. Ambassador Forward */}
+              <div className="flex flex-col gap-2 mb-6">
+                <label className="label-sm flex items-center justify-between">
+                  <span>Ambassador Personalised (Thandi)</span>
+                  <span className="text-[9px] font-bold text-kPurple tracking-widest">NETWORK</span>
+                </label>
+                <div className="glass-panel p-4 bg-kPurple/5 border-kPurple/20">
+                  <div className="text-[14px] leading-relaxed text-white mb-4 italic opacity-80">{result.ambassador}</div>
+                  
+                  {/* Link Box */}
+                  <div className="flex items-center justify-between p-2.5 rounded-lg bg-black/40 border border-white/10 mb-4">
+                    <span className="text-[11px] font-bold text-primary truncate">kua.link/amb-{(user.bizName || 'shop').toLowerCase().replace(/\s/g,'-')}</span>
+                    <button onClick={copyLink} className="text-[10px] font-bold text-white bg-white/10 px-3 py-1 rounded-md hover:bg-white/20 transition-all uppercase tracking-widest shrink-0">Copy Link</button>
+                  </div>
+
+                  <button onClick={() => shareWA(result.ambassador)} className="btn-secondary !py-2 !text-[11px] w-full border-kPurple/30 text-kPurple gap-2 hover:bg-kPurple/10 focus:ring-kPurple/30 transition-all"><MessageCircle size={14} /> Send to Ambassadors</button>
                 </div>
               </div>
             </div>

@@ -1,0 +1,638 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --g:#1D9E75;--gl:#E1F5EE;--gd:#085041;--gm:#0F6E56;
+  --am:#EF9F27;--al:#FAEEDA;--ad:#633806;
+  --pu:#534AB7;--pl:#EEEDFE;--pd:#3C3489;
+  --co:#D85A30;--cl:#FAECE7;--cm:#993C1D;
+  --tx:var(--color-text-primary);--mu:var(--color-text-secondary);
+  --su:var(--color-background-secondary);--ca:var(--color-background-primary);
+  --br:var(--color-border-tertiary);--bs:var(--color-border-secondary);
+}
+body{font-family:'DM Sans',sans-serif;font-size:14px;color:var(--tx);}
+.wrap{padding-bottom:3rem;}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.25rem;border-bottom:0.5px solid var(--br);background:var(--ca);gap:12px;flex-wrap:wrap;}
+.logo{font-family:'Syne',sans-serif;font-size:21px;font-weight:800;color:var(--g);letter-spacing:-.5px;white-space:nowrap;}
+.biz-chip{display:flex;align-items:center;gap:8px;background:var(--su);border:0.5px solid var(--br);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--mu);}
+.biz-dot{width:8px;height:8px;border-radius:50%;background:var(--g);flex-shrink:0;}
+
+.sidenav{display:flex;gap:2px;padding:.75rem 1.25rem;border-bottom:0.5px solid var(--br);overflow-x:auto;background:var(--ca);}
+.snav{padding:7px 15px;border-radius:20px;border:0.5px solid transparent;font-size:12px;font-weight:500;cursor:pointer;background:transparent;color:var(--mu);font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap;}
+.snav.on{background:var(--g);color:#fff;border-color:var(--g);}
+.snav:hover:not(.on){background:var(--su);color:var(--tx);border-color:var(--br);}
+
+.pane{display:none;padding:1.25rem;}
+.pane.on{display:block;}
+.sec{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:1rem;color:var(--tx);}
+.sub{font-size:12px;color:var(--mu);margin-bottom:1rem;line-height:1.6;}
+
+.card{background:var(--ca);border:0.5px solid var(--br);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;margin-bottom:10px;}
+.card.hi{border:2px solid var(--g);}
+.card.amber{border-left:3px solid var(--am);border-radius:0 var(--border-radius-lg) var(--border-radius-lg) 0;}
+.card.purple{border-left:3px solid var(--pu);border-radius:0 var(--border-radius-lg) var(--border-radius-lg) 0;}
+
+.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:1rem;}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:1rem;}
+.g4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:1rem;}
+
+.met{background:var(--su);border-radius:var(--border-radius-md);padding:.9rem 1rem;text-align:center;}
+.met .n{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:var(--g);display:block;}
+.met .l{font-size:11px;color:var(--mu);margin-top:2px;}
+.met.am .n{color:var(--am);}
+.met.pu .n{color:var(--pu);}
+
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:500;}
+.bg{background:var(--gl);color:var(--gm);}
+.ba{background:var(--al);color:var(--ad);}
+.bp{background:var(--pl);color:var(--pd);}
+.bc{background:var(--cl);color:var(--cm);}
+.bx{background:var(--su);color:var(--mu);}
+
+.inp{width:100%;border:0.5px solid var(--br);border-radius:var(--border-radius-md);padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--su);color:var(--tx);margin-bottom:10px;}
+.inp:focus{outline:none;border-color:var(--g);}
+textarea.inp{resize:none;}
+select.inp{cursor:pointer;}
+
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+.pill{padding:5px 12px;border-radius:20px;border:0.5px solid var(--br);font-size:11px;font-weight:500;cursor:pointer;background:var(--su);color:var(--mu);transition:all .15s;font-family:'DM Sans',sans-serif;}
+.pill.on{background:var(--gl);border-color:var(--g);color:var(--gd);}
+.pill.am.on{background:var(--al);border-color:var(--am);color:var(--ad);}
+.pill.pu.on{background:var(--pl);border-color:var(--pu);color:var(--pd);}
+
+.btn{padding:9px 18px;border-radius:var(--border-radius-md);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;border:0.5px solid var(--br);}
+.btn.pr{background:var(--g);color:#fff;border-color:var(--g);}
+.btn.pr:hover{background:var(--gm);}
+.btn.gh{background:transparent;color:var(--mu);}
+.btn.gh:hover{background:var(--su);color:var(--tx);}
+.btn.am{background:var(--am);color:#fff;border-color:var(--am);}
+.btn.pu{background:var(--pu);color:#fff;border-color:var(--pu);}
+.btn.fl{width:100%;}
+.btn.sm{padding:6px 14px;font-size:11px;}
+
+.row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid var(--br);}
+.row:last-child{border-bottom:none;}
+.av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:500;font-size:12px;flex-shrink:0;}
+
+.bubble{background:var(--gl);border-radius:0 var(--border-radius-lg) var(--border-radius-lg) var(--border-radius-lg);padding:12px 14px;font-size:13px;line-height:1.7;color:var(--gd);margin-bottom:8px;border:0.5px solid #9FE1CB;}
+
+.prog{height:5px;background:var(--su);border-radius:3px;overflow:hidden;margin-top:6px;}
+.progf{height:100%;background:var(--g);border-radius:3px;}
+.progf.am{background:var(--am);}
+.progf.pu{background:var(--pu);}
+
+.lbl{font-size:12px;color:var(--mu);margin-bottom:5px;}
+.link-box{background:var(--su);border:0.5px solid var(--br);border-radius:var(--border-radius-md);padding:8px 12px;font-size:12px;color:var(--mu);display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.link-box span{color:var(--g);font-weight:500;font-size:12px;}
+
+.flow{display:flex;gap:0;margin-bottom:1.25rem;overflow-x:auto;}
+.fstep{flex:1;min-width:80px;text-align:center;position:relative;}
+.fstep:not(:last-child)::after{content:'';position:absolute;top:16px;right:0;width:50%;height:1px;background:var(--br);}
+.fstep:not(:first-child)::before{content:'';position:absolute;top:16px;left:0;width:50%;height:1px;background:var(--br);}
+.fdot{width:32px;height:32px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;position:relative;z-index:1;}
+.fdot.done{background:var(--g);color:#fff;}
+.fdot.prog{background:var(--am);color:#fff;}
+.fdot.next{background:var(--su);color:var(--mu);border:0.5px solid var(--br);}
+.ftxt{font-size:10px;color:var(--mu);line-height:1.4;padding:0 4px;}
+
+.ins{background:var(--gl);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;margin-top:4px;}
+.ins-title{font-weight:500;font-size:13px;color:var(--gd);margin-bottom:4px;}
+.ins-body{font-size:12px;color:var(--gm);line-height:1.6;}
+
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid var(--br);}
+.toggle-row:last-child{border-bottom:none;}
+.toggle{width:36px;height:20px;border-radius:10px;background:var(--br);cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;}
+.toggle.on{background:var(--g);}
+.toggle::after{content:'';width:16px;height:16px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:left .2s;}
+.toggle.on::after{left:18px;}
+
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;}
+.tag.live{background:var(--gl);color:var(--gm);}
+.tag.sched{background:var(--al);color:var(--ad);}
+.tag.amb{background:var(--pl);color:var(--pd);}
+.tag.draft{background:var(--su);color:var(--mu);}
+
+.dot-live{width:6px;height:6px;border-radius:50%;background:var(--g);display:inline-block;}
+.dot-sched{width:6px;height:6px;border-radius:50%;background:var(--am);display:inline-block;}
+.dot-amb{width:6px;height:6px;border-radius:50%;background:var(--pu);display:inline-block;}
+
+@media(max-width:500px){.g3,.g4{grid-template-columns:repeat(2,minmax(0,1fr));}.g2{grid-template-columns:1fr;}}
+</style>
+
+<div class="wrap">
+
+<div class="topbar">
+  <div class="logo">KUA</div>
+  <div class="biz-chip"><div class="biz-dot"></div>Mama Zara's Fresh Produce · Soweto</div>
+</div>
+
+<div class="sidenav" id="sidenav">
+  <button class="snav on" data-p="home">Home</button>
+  <button class="snav" data-p="create">Create</button>
+  <button class="snav" data-p="schedule">Schedule</button>
+  <button class="snav" data-p="ambassadors">Ambassadors</button>
+  <button class="snav" data-p="analytics">Analytics</button>
+  <button class="snav" data-p="settings">Settings</button>
+</div>
+
+<!-- HOME -->
+<div class="pane on" id="pane-home">
+  <div class="g4">
+    <div class="met"><span class="n">4,821</span><span class="l">Total reach</span></div>
+    <div class="met am"><span class="n">12</span><span class="l">Ambassadors</span></div>
+    <div class="met pu"><span class="n">47</span><span class="l">Referrals</span></div>
+    <div class="met"><span class="n">R184</span><span class="l">Paid out</span></div>
+  </div>
+
+  <div class="sec">What needs your attention today</div>
+
+  <div class="card hi">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div style="font-size:13px;font-weight:500;">Your Friday post is scheduled</div>
+      <span class="tag sched"><span class="dot-sched"></span>Scheduled</span>
+    </div>
+    <div style="font-size:12px;color:var(--mu);margin-bottom:10px;">Weekend specials · WhatsApp + Facebook · 07:30am</div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn gh sm" onclick="goTo('schedule')">View schedule</button>
+      <button class="btn pr sm" onclick="goTo('ambassadors')">Also send via ambassadors</button>
+    </div>
+  </div>
+
+  <div class="card amber">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <div style="font-size:13px;font-weight:500;">Thandi is waiting for her message</div>
+      <span class="tag amb"><span class="dot-amb"></span>Ambassador</span>
+    </div>
+    <div style="font-size:12px;color:var(--mu);margin-bottom:10px;">You created a post yesterday but haven't sent it to Thandi's network yet. She reaches 4 groups with ~600 people.</div>
+    <button class="btn am sm" onclick="goTo('ambassadors')">Send her the message</button>
+  </div>
+
+  <div class="card purple">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <div style="font-size:13px;font-weight:500;">R75 reward owed to Thandi</div>
+      <span class="badge bp">Pay out</span>
+    </div>
+    <div style="font-size:12px;color:var(--mu);margin-bottom:10px;">Her last referral campaign brought in 3 confirmed sales. Pay her airtime to keep her motivated.</div>
+    <button class="btn pu sm" onclick="goTo('ambassadors')">Pay R75 via MTN MoMo</button>
+  </div>
+
+  <div class="sec" style="margin-top:.5rem;">This week's activity</div>
+  <div class="card">
+    <div class="row">
+      <span class="tag live"><span class="dot-live"></span>Live</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:500;">Tomato flash sale</div>
+        <div style="font-size:11px;color:var(--mu);">Posted Wed · 1,240 reached · 89 clicks</div>
+      </div>
+      <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--g);">7.2%</div>
+    </div>
+    <div class="row">
+      <span class="tag amb"><span class="dot-amb"></span>Via Thandi</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:500;">Tomato flash sale (forwarded)</div>
+        <div style="font-size:11px;color:var(--mu);">4 WhatsApp groups · 580 reached · 38 clicks</div>
+      </div>
+      <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--pu);">6.5%</div>
+    </div>
+    <div class="row">
+      <span class="tag sched"><span class="dot-sched"></span>Scheduled</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:500;">Weekend market hours</div>
+        <div style="font-size:11px;color:var(--mu);">Friday 07:30 · WhatsApp + Facebook</div>
+      </div>
+      <span class="badge bx">Tomorrow</span>
+    </div>
+  </div>
+
+  <div class="ins">
+    <div class="ins-title">KUA insight for today</div>
+    <div class="ins-body">Your ambassador posts are getting 2.3× more clicks than your direct posts. Consider recruiting 3 more ambassadors this week — you currently only have 12 and your reach potential is much higher.</div>
+    <button class="btn gh sm" style="margin-top:8px;color:var(--gm);border-color:#9FE1CB;font-size:11px;" onclick="goTo('ambassadors')">Recruit more ambassadors</button>
+  </div>
+</div>
+
+<!-- CREATE -->
+<div class="pane" id="pane-create">
+  <div class="sec">Create a new campaign</div>
+  <div class="sub">Write once — KUA automatically formats it for every channel and your ambassador network.</div>
+
+  <div class="card">
+    <div class="lbl">What are you promoting?</div>
+    <textarea class="inp" id="promoText" rows="3" placeholder="e.g. Fresh spinach this weekend — R15/bunch, straight from the farm. Come early, stock runs out fast!"></textarea>
+    <div class="lbl">Business name / your name</div>
+    <input class="inp" id="bizName" placeholder="e.g. Mama Zara's Fresh Produce">
+    <div class="lbl">Tone</div>
+    <div class="pills" id="cTone">
+      <span class="pill on" data-v="warm">Warm & friendly</span>
+      <span class="pill" data-v="urgent">Urgent deal</span>
+      <span class="pill" data-v="local">Local slang</span>
+      <span class="pill" data-v="formal">Professional</span>
+    </div>
+    <div class="lbl">Language</div>
+    <div class="pills" id="cLang">
+      <span class="pill on" data-v="en">English</span>
+      <span class="pill" data-v="zu">Zulu</span>
+      <span class="pill" data-v="sw">Swahili</span>
+      <span class="pill" data-v="yo">Yoruba</span>
+    </div>
+    <button class="btn pr fl" onclick="generateAll()">Generate all versions at once</button>
+  </div>
+
+  <div id="allOutputs" style="display:none;">
+    <div class="sec">Your campaign — ready to go</div>
+
+    <div class="lbl">WhatsApp / SMS version</div>
+    <div class="bubble" id="waOut"></div>
+
+    <div class="lbl">Facebook / Instagram caption</div>
+    <div class="bubble" id="fbOut" style="background:var(--pl);color:var(--pd);border-color:#AFA9EC;border-radius:var(--border-radius-lg);"></div>
+
+    <div class="lbl">Ambassador forwarding message (personalised for Thandi)</div>
+    <div class="bubble" id="ambOut" style="background:var(--al);color:var(--ad);border-color:#FAC775;border-radius:0 var(--border-radius-lg) var(--border-radius-lg) var(--border-radius-lg);"></div>
+    <div class="link-box"><span>kua.link/amb-thandi-apr</span><button class="btn gh sm" onclick="copyLink()">Copy link</button></div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:4px;">
+      <button class="btn pr sm" onclick="goTo('schedule')">Schedule posts</button>
+      <button class="btn am sm" onclick="goTo('ambassadors')">Send to ambassadors</button>
+      <button class="btn gh sm" onclick="resetCreate()">Start over</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCHEDULE -->
+<div class="pane" id="pane-schedule">
+  <div class="sec">Content calendar</div>
+  <div class="sub">Every scheduled post shows alongside its ambassador version — one campaign, full picture.</div>
+
+  <div id="calWrap" style="margin-bottom:1rem;"></div>
+
+  <div class="sec">This week</div>
+  <div class="card">
+    <div class="row">
+      <div style="background:var(--gl);border-radius:var(--border-radius-md);padding:6px 10px;text-align:center;min-width:44px;">
+        <div style="font-size:9px;color:var(--gm);">MON</div>
+        <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--gd);">07</div>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:500;">Weekend spinach specials</div>
+        <div style="font-size:11px;color:var(--mu);">09:00 · WhatsApp · 284 contacts</div>
+      </div>
+      <span class="tag sched"><span class="dot-sched"></span>Scheduled</span>
+    </div>
+    <div class="row" style="background:var(--pl);border-radius:var(--border-radius-md);padding:8px 10px;margin:6px 0;">
+      <div style="width:44px;text-align:center;flex-shrink:0;">
+        <span class="badge bp" style="font-size:9px;">AMB</span>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12px;font-weight:500;color:var(--pd);">Same post · via Thandi, Kofi, Amara</div>
+        <div style="font-size:11px;color:var(--pu);">~900 extra people in community groups</div>
+      </div>
+      <span class="tag amb" style="font-size:9px;"><span class="dot-amb"></span>Auto-send</span>
+    </div>
+    <div class="row">
+      <div style="background:var(--al);border-radius:var(--border-radius-md);padding:6px 10px;text-align:center;min-width:44px;">
+        <div style="font-size:9px;color:var(--ad);">WED</div>
+        <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--ad);">09</div>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:500;">Flash sale: 30% off tomatoes</div>
+        <div style="font-size:11px;color:var(--mu);">12:00 · Facebook + Instagram</div>
+      </div>
+      <span class="tag sched"><span class="dot-sched"></span>Scheduled</span>
+    </div>
+  </div>
+
+  <div class="toggle-row">
+    <div>
+      <div style="font-size:13px;font-weight:500;">Auto-send to ambassadors</div>
+      <div style="font-size:11px;color:var(--mu);">Every new post automatically queues for your ambassador network</div>
+    </div>
+    <div class="toggle on" id="autoToggle" onclick="this.classList.toggle('on')"></div>
+  </div>
+  <div class="toggle-row">
+    <div>
+      <div style="font-size:13px;font-weight:500;">Smart timing</div>
+      <div style="font-size:11px;color:var(--mu);">KUA picks the best time based on your past performance</div>
+    </div>
+    <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+  </div>
+  <div class="toggle-row">
+    <div>
+      <div style="font-size:13px;font-weight:500;">Cross-post to all platforms</div>
+      <div style="font-size:11px;color:var(--mu);">One post goes to WhatsApp, Facebook and Instagram</div>
+    </div>
+    <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+  </div>
+  <button class="btn pr fl" style="margin-top:1rem;" onclick="goTo('create')">+ Create new post</button>
+</div>
+
+<!-- AMBASSADORS -->
+<div class="pane" id="pane-ambassadors">
+  <div class="sec">Your ambassador network</div>
+
+  <div class="g3">
+    <div class="met"><span class="n">12</span><span class="l">Active</span></div>
+    <div class="met am"><span class="n">3,840</span><span class="l">People reached</span></div>
+    <div class="met pu"><span class="n">R184</span><span class="l">Paid out</span></div>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <div class="av" style="background:var(--gl);color:var(--gm);">TN</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:500;">Thandi Nkosi</div>
+        <div style="font-size:11px;color:var(--mu);">4 groups · 18 clicks · 3 sales</div>
+        <div class="prog"><div class="progf" style="width:90%;"></div></div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;">
+        <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--g);">R45</div>
+        <button class="btn pr sm" style="margin-top:4px;font-size:10px;padding:4px 10px;" onclick="showPay()">Pay now</button>
+      </div>
+    </div>
+    <div class="row">
+      <div class="av" style="background:var(--pl);color:var(--pd);">KM</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:500;">Kofi Mensah</div>
+        <div style="font-size:11px;color:var(--mu);">3 groups · 14 clicks · 1 sale</div>
+        <div class="prog"><div class="progf pu" style="width:65%;"></div></div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;">
+        <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--pu);">R35</div>
+        <button class="btn pu sm" style="margin-top:4px;font-size:10px;padding:4px 10px;" onclick="showPay()">Pay now</button>
+      </div>
+    </div>
+    <div class="row">
+      <div class="av" style="background:var(--al);color:var(--ad);">AB</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:500;">Amara Bah</div>
+        <div style="font-size:11px;color:var(--mu);">2 groups · 9 clicks · 1 sale</div>
+        <div class="prog"><div class="progf am" style="width:40%;"></div></div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;">
+        <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--am);">R20</div>
+        <button class="btn am sm" style="margin-top:4px;font-size:10px;padding:4px 10px;" onclick="showPay()">Pay now</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="payBox" style="display:none;" class="card hi">
+    <div class="lbl">Pay via mobile money</div>
+    <div class="pills" id="payPills">
+      <span class="pill on" data-v="mtn">MTN MoMo</span>
+      <span class="pill" data-v="mpesa">M-Pesa</span>
+      <span class="pill" data-v="airtel">Airtel Money</span>
+      <span class="pill" data-v="airtime">Airtime</span>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn pr" style="flex:1;" onclick="confirmPay()">Send R45 to Thandi</button>
+      <button class="btn gh" onclick="document.getElementById('payBox').style.display='none'">Cancel</button>
+    </div>
+    <div id="payDone" style="display:none;margin-top:10px;background:var(--gl);border-radius:var(--border-radius-md);padding:10px 12px;font-size:12px;color:var(--gm);text-align:center;font-weight:500;">Sent! Thandi will receive a notification on her phone.</div>
+  </div>
+
+  <div style="display:flex;gap:8px;margin-bottom:1rem;margin-top:.5rem;">
+    <button class="btn pr" style="flex:1;" onclick="goTo('create')">Create message for ambassadors</button>
+    <button class="btn gh" onclick="showInvite()">+ Recruit new</button>
+  </div>
+
+  <div id="inviteBox" style="display:none;" class="card">
+    <div class="lbl">Invite message — sent to their WhatsApp</div>
+    <div class="bubble" style="font-size:12px;">Hey [Name]! You've been a loyal customer and we really appreciate you. We want to invite you to be a KUA Ambassador for Mama Zara's. For every person who buys because of you, we'll send you R10 airtime straight to your number. Reply YES and we'll set you up right away!</div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn pr sm fl" onclick="copyInvite()">Copy &amp; send on WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<!-- ANALYTICS -->
+<div class="pane" id="pane-analytics">
+  <div class="sec">Your full picture — direct + ambassador</div>
+
+  <div class="g2" style="margin-bottom:.5rem;">
+    <div class="met"><span class="n">4,821</span><span class="l">Total reach (direct)</span></div>
+    <div class="met pu"><span class="n">3,840</span><span class="l">Ambassador reach</span></div>
+  </div>
+  <div class="g2">
+    <div class="met"><span class="n">312</span><span class="l">Direct clicks</span></div>
+    <div class="met am"><span class="n">47</span><span class="l">Ambassador referrals</span></div>
+  </div>
+
+  <div class="sec">Direct posts vs ambassador posts</div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--mu);margin-bottom:8px;">
+      <span>Channel performance comparison</span>
+      <span>Click-through rate</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      <div style="font-size:12px;color:var(--tx);width:90px;flex-shrink:0;">Your posts</div>
+      <div style="flex:1;background:var(--su);border-radius:3px;height:16px;overflow:hidden;">
+        <div style="width:64%;height:100%;background:var(--g);border-radius:3px;"></div>
+      </div>
+      <div style="font-size:12px;font-weight:500;color:var(--g);width:32px;text-align:right;">6.4%</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      <div style="font-size:12px;color:var(--tx);width:90px;flex-shrink:0;">Ambassadors</div>
+      <div style="flex:1;background:var(--su);border-radius:3px;height:16px;overflow:hidden;">
+        <div style="width:85%;height:100%;background:var(--pu);border-radius:3px;"></div>
+      </div>
+      <div style="font-size:12px;font-weight:500;color:var(--pu);width:32px;text-align:right;">14.7%</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="font-size:12px;color:var(--tx);width:90px;flex-shrink:0;">Facebook ads</div>
+      <div style="flex:1;background:var(--su);border-radius:3px;height:16px;overflow:hidden;">
+        <div style="width:18%;height:100%;background:var(--co);border-radius:3px;"></div>
+      </div>
+      <div style="font-size:12px;font-weight:500;color:var(--co);width:32px;text-align:right;">1.8%</div>
+    </div>
+  </div>
+
+  <div class="sec">Cost per reach</div>
+  <div class="g3">
+    <div class="met"><span class="n" style="font-size:16px;">R0.04</span><span class="l">Your posts</span></div>
+    <div class="met pu"><span class="n" style="font-size:16px;color:var(--pu);">R0.05</span><span class="l">Ambassadors</span></div>
+    <div class="met am"><span class="n" style="font-size:16px;color:var(--co);">R0.22</span><span class="l">Facebook ads</span></div>
+  </div>
+
+  <div class="ins">
+    <div class="ins-title">The combined power</div>
+    <div class="ins-body">Your ambassador network is generating a 14.7% click rate — 8× better than Facebook ads — at 4× lower cost. This is the KUA advantage. The more ambassadors you recruit, the more this gap widens.</div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="pane" id="pane-settings">
+  <div class="sec">Platform settings</div>
+
+  <div class="card">
+    <div class="lbl" style="font-weight:500;color:var(--tx);margin-bottom:10px;">Connected channels</div>
+    <div class="toggle-row">
+      <div><div style="font-size:13px;font-weight:500;">WhatsApp Business</div><div style="font-size:11px;color:var(--mu);">+27 83 456 7890 · Connected</div></div>
+      <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+    </div>
+    <div class="toggle-row">
+      <div><div style="font-size:13px;font-weight:500;">Facebook Page</div><div style="font-size:11px;color:var(--mu);">Mama Zara's Fresh Produce · Connected</div></div>
+      <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+    </div>
+    <div class="toggle-row">
+      <div><div style="font-size:13px;font-weight:500;">Instagram</div><div style="font-size:11px;color:var(--mu);">@mamazara_fresh · Connected</div></div>
+      <div class="toggle" onclick="this.classList.toggle('on')"></div>
+    </div>
+    <div class="toggle-row">
+      <div><div style="font-size:13px;font-weight:500;">SMS broadcast</div><div style="font-size:11px;color:var(--mu);">Bulk SMS via local gateway · Not connected</div></div>
+      <div class="toggle" onclick="this.classList.toggle('on')"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="lbl" style="font-weight:500;color:var(--tx);margin-bottom:10px;">Ambassador payout method</div>
+    <div class="pills" id="payMethod">
+      <span class="pill on" data-v="mtn">MTN MoMo</span>
+      <span class="pill" data-v="mpesa">M-Pesa</span>
+      <span class="pill" data-v="airtel">Airtel Money</span>
+      <span class="pill" data-v="airtime">Airtime top-up</span>
+    </div>
+    <div class="lbl">Default reward per referral click</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <span style="font-size:13px;color:var(--mu);">R</span>
+      <input class="inp" type="number" value="10" min="1" step="1" style="width:80px;margin:0;">
+      <span style="font-size:12px;color:var(--mu);">per click · R25 per confirmed sale</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="lbl" style="font-weight:500;color:var(--tx);margin-bottom:10px;">AI content preferences</div>
+    <div class="toggle-row">
+      <div><div style="font-size:13px;font-weight:500;">Always include ambassador version</div><div style="font-size:11px;color:var(--mu);">Every generated post includes an ambassador-friendly variant</div></div>
+      <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+    </div>
+    <div class="toggle-row">
+      <div><div style="font-size:13px;font-weight:500;">Auto-assign best ambassador</div><div style="font-size:11px;color:var(--mu);">KUA picks the ambassador most likely to convert for each post</div></div>
+      <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+    </div>
+    <div class="toggle-row">
+      <div><div style="font-size:13px;font-weight:500;">Offline draft saving</div><div style="font-size:11px;color:var(--mu);">Save posts without data, auto-sends when reconnected</div></div>
+      <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="lbl" style="font-weight:500;color:var(--tx);margin-bottom:6px;">Current plan</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--g);">Grower</div>
+        <div style="font-size:12px;color:var(--mu);">R99/month · All features unlocked</div>
+      </div>
+      <span class="badge bg">Active</span>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+function goTo(id){
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.snav').forEach(s=>s.classList.remove('on'));
+  document.getElementById('pane-'+id).classList.add('on');
+  document.querySelector('[data-p="'+id+'"]').classList.add('on');
+}
+document.querySelectorAll('.snav').forEach(s=>{
+  s.addEventListener('click',()=>goTo(s.dataset.p));
+});
+
+function makePills(sel){
+  document.querySelectorAll(sel+' .pill').forEach(p=>{
+    p.addEventListener('click',()=>{
+      document.querySelectorAll(sel+' .pill').forEach(x=>x.classList.remove('on'));
+      p.classList.add('on');
+    });
+  });
+}
+makePills('#cTone');makePills('#cLang');makePills('#payPills');makePills('#payMethod');makePills('#payMethod');
+
+const waTemplates={
+  warm:(b,p)=>`Hey fam! ${b} has something special for you this weekend — ${p}. Come early and tell your neighbours! We always look after our community 🙌`,
+  urgent:(b,p)=>`QUICK! ${b} — ${p}. Stock is LIMITED and going FAST 🔥 Don't wait!`,
+  local:(b,p)=>`Eish guys! ${b} is killing it — ${p}. Yho, straight fire neh! Tag your neighbour 👊`,
+  formal:(b,p)=>`Dear valued customers. ${b} would like to inform you of a current offer: ${p}. We appreciate your continued support.`
+};
+const fbTemplates={
+  warm:(b,p)=>`Fresh from ${b}! 🌿 ${p} — quality you can taste, prices that make sense. Share this with your community and come see us!`,
+  urgent:(b,p)=>`🚨 LIMITED TIME at ${b}! ${p} — once it's gone, it's gone. DM us or visit today!`,
+  local:(b,p)=>`Weekend vibes = ${b} vibes 🎉 ${p}. Your cooking will thank you! Tag someone who needs to see this 👇`,
+  formal:(b,p)=>`${b} is pleased to offer: ${p}. Visit us or place your order in advance for guaranteed stock.`
+};
+const ambTemplates={
+  warm:(b,p,n)=>`Hey everyone! Just want to share something from my friend at ${b} — ${p}. I've been buying from them for ages and honestly they never disappoint. Check it out 👉 kua.link/amb-${(n||'thandi').toLowerCase().replace(/\s/g,'-')}-apr`,
+  urgent:(b,p,n)=>`GUYS! My friend at ${b} has a deal on right now — ${p}. Stock is running out! Check it here 🔥 kua.link/amb-${(n||'thandi').toLowerCase().replace(/\s/g,'-')}-apr`,
+  local:(b,p,n)=>`Eish! My people at ${b} — ${p}. Yhooo don't sleep on this one neh 👊 kua.link/amb-${(n||'thandi').toLowerCase().replace(/\s/g,'-')}-apr`,
+  formal:(b,p,n)=>`Good day. I am sharing this on behalf of ${b}: ${p}. More info here: kua.link/amb-${(n||'thandi').toLowerCase().replace(/\s/g,'-')}-apr`
+};
+
+function generateAll(){
+  const p=document.getElementById('promoText').value.trim()||'fresh spinach R15/bunch this weekend only';
+  const b=document.getElementById('bizName').value.trim()||'Mama Zara\'s Fresh Produce';
+  const tone=document.querySelector('#cTone .pill.on')?.dataset?.v||'warm';
+  document.getElementById('waOut').textContent=(waTemplates[tone]||waTemplates.warm)(b,p);
+  document.getElementById('fbOut').textContent=(fbTemplates[tone]||fbTemplates.warm)(b,p);
+  document.getElementById('ambOut').textContent=(ambTemplates[tone]||ambTemplates.warm)(b,p,'Thandi');
+  document.getElementById('allOutputs').style.display='block';
+}
+
+function resetCreate(){
+  document.getElementById('allOutputs').style.display='none';
+  document.getElementById('promoText').value='';
+  document.getElementById('bizName').value='';
+}
+
+function copyLink(){
+  navigator.clipboard.writeText('https://kua.link/amb-thandi-apr').catch(()=>{});
+  event.target.textContent='Copied!';
+  setTimeout(()=>event.target.textContent='Copy link',1500);
+}
+
+function showPay(){document.getElementById('payBox').style.display='block';}
+function confirmPay(){
+  document.getElementById('payDone').style.display='block';
+  setTimeout(()=>{document.getElementById('payDone').style.display='none';document.getElementById('payBox').style.display='none';},2500);
+}
+function showInvite(){
+  const b=document.getElementById('inviteBox');
+  b.style.display=b.style.display==='none'?'block':'none';
+}
+function copyInvite(){
+  navigator.clipboard.writeText(document.querySelector('#inviteBox .bubble').textContent).catch(()=>{});
+  event.target.textContent='Copied!';
+  setTimeout(()=>event.target.textContent='Copy & send on WhatsApp',1500);
+}
+
+const calDays=['S','M','T','W','T','F','S'];
+const postDays=[4,7,9,11,14,16,21,23,25];
+const ambDays=[7,9,11,14,21,25];
+const cal=document.getElementById('calWrap');
+if(cal){
+  const grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;';
+  calDays.forEach(d=>{
+    const h=document.createElement('div');
+    h.style.cssText='text-align:center;font-size:10px;color:var(--mu);padding:4px 0;font-weight:500;';
+    h.textContent=d;grid.appendChild(h);
+  });
+  for(let i=0;i<3;i++){const e=document.createElement('div');e.style.cssText='aspect-ratio:1;';grid.appendChild(e);}
+  for(let d=1;d<=30;d++){
+    const el=document.createElement('div');
+    const isPost=postDays.includes(d),isAmb=ambDays.includes(d),isToday=d===4;
+    el.style.cssText=`aspect-ratio:1;border-radius:var(--border-radius-md);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;cursor:pointer;background:${isPost?'var(--gl)':'var(--su)'};color:${isPost?'var(--gm)':'var(--tx)'};border:${isToday?'1.5px solid var(--g)':'0.5px solid transparent'};font-weight:${isToday||isPost?'500':'400'};gap:2px;`;
+    el.textContent=d;
+    if(isAmb){const dot=document.createElement('div');dot.style.cssText='width:4px;height:4px;border-radius:50%;background:var(--pu);';el.appendChild(dot);}
+    grid.appendChild(el);
+  }
+  cal.appendChild(grid);
+  const leg=document.createElement('div');
+  leg.style.cssText='display:flex;gap:16px;margin-top:8px;font-size:11px;color:var(--mu);';
+  leg.innerHTML='<span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:var(--gl);display:inline-block;"></span>Post scheduled</span><span style="display:flex;align-items:center;gap:4px;"><span style="width:6px;height:6px;border-radius:50%;background:var(--pu);display:inline-block;"></span>Ambassador send</span>';
+  cal.appendChild(leg);
+}
+</script>
