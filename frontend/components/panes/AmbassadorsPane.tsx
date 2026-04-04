@@ -1,8 +1,10 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useKua } from '../KuaProvider'
 
 export default function AmbassadorsPane({ onTabChange }: { onTabChange: (tab: any) => void }) {
+  const { addHistoryItem } = useKua()
   const [payBox, setPayBox] = useState<any>(null)
   const [payDone, setPayDone] = useState(false)
   const [showInvite, setShowInvite] = useState(false)
@@ -15,6 +17,14 @@ export default function AmbassadorsPane({ onTabChange }: { onTabChange: (tab: an
   ]
 
   const confirmPay = () => {
+    if (payBox) {
+      addHistoryItem('payout', {
+        amount: payBox.owed,
+        recipient: payBox.name,
+        gateway: 'MTN MoMo',
+        stats: payBox.stats,
+      })
+    }
     setPayDone(true)
     setTimeout(() => {
       setPayDone(false)

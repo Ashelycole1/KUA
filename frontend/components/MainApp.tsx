@@ -28,7 +28,7 @@ const NAV = [
 ]
 
 export default function MainApp() {
-  const { user, setUser, toast, countryData, notifications } = useKua()
+  const { user, setUser, toast, countryData, notifications, addHistoryItem } = useKua()
   const [tab, setTab] = useState<Tab>('home')
   const [isNotifOpen, setIsNotifOpen] = useState(false)
 
@@ -36,6 +36,12 @@ export default function MainApp() {
     toast('Payment prompt sent to device…')
     setTimeout(() => {
       setUser({ credits: user.credits + 10 })
+      addHistoryItem('deposit', {
+        amount: countryData.pricePer10,
+        currency: countryData.currency,
+        credits: 10,
+        gateway: countryData.paymentMethod,
+      })
       toast(`✅ 10 credits funded via ${countryData.paymentMethod}!`)
     }, 2000)
   }
@@ -44,6 +50,13 @@ export default function MainApp() {
     toast('Payment prompt sent to device…')
     setTimeout(() => {
       setUser({ balance: user.balance + 500 })
+      addHistoryItem('deposit', {
+        amount: 500,
+        currency: countryData.currency,
+        credits: 0,
+        gateway: countryData.paymentMethod,
+        note: 'Wallet top-up',
+      })
       toast(`✅ ${formatCurrency(500, countryData)} added to your wallet!`)
     }, 2000)
   }
