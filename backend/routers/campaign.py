@@ -15,6 +15,8 @@ class CampaignRequest(BaseModel):
     biz_name: Optional[str] = ""
     biz_type: Optional[str] = ""
     brand_keywords: Optional[str] = ""
+    tone: Optional[str] = "warm"
+    language: Optional[str] = "en"
 
 
 class CampaignResponse(BaseModel):
@@ -72,13 +74,22 @@ async def generate_campaign(req: CampaignRequest, decoded: dict = Depends(get_cu
         phone=phone,
         prompt=input_text,
         variants=variants,
+        tone_selected=req.tone or "warm",
         flyer_url=flyer_url or ""
     )
 
+    t = (req.tone or "warm").lower()
+    if t == "urgent":
+        mapped_social = variants.get("hype", "")
+    elif t == "local":
+        mapped_social = variants.get("sheng", "")
+    else:
+        mapped_social = variants.get("professional", "")
+
     return CampaignResponse(
-        whatsapp=variants.get("whatsapp", ""),
-        social=variants.get("social", ""),
-        ambassador=variants.get("ambassador", ""),
+        whatsapp=variants.get("sms", ""),
+        social=mapped_social,
+        ambassador=variants.get("ambassador_message", ""),
         flyer_url=flyer_url,
         credits_remaining=credits_remaining,
     )
@@ -133,11 +144,12 @@ async def generate_campaign_image(
         phone=phone,
         prompt=extracted_text,
         variants=variants,
+        tone_selected="warm",
         flyer_url=""
     )
 
     return CampaignResponse(
-        whatsapp=variants.get("whatsapp", ""),
-        social=variants.get("social", ""),
-        ambassador=variants.get("ambassador", ""),
+        whatsapp=variants.get("sms", ""),
+        social=variants.get("professional", ""),
+        ambassador=variants.get("ambassador_message", ""),
     )

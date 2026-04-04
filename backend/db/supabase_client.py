@@ -6,8 +6,8 @@ _client: Client | None = None
 def get_supabase() -> Client:
     global _client
     if _client is None:
-        url = os.getenv("SUPABASE_URL", "")
-        key = os.getenv("SUPABASE_KEY", "")
+        url = os.getenv("SUPABASE_URL", "http://localhost:8000")
+        key = os.getenv("SUPABASE_KEY", "dummy")
         _client = create_client(url, key)
     return _client
 
@@ -125,15 +125,18 @@ def upsert_user(clerk_id: str, phone: str, currency_code: str = 'KES') -> dict:
         raise e
 
 
-def save_campaign(phone: str, prompt: str, variants: dict, flyer_url: str = "") -> bool:
+def save_campaign(phone: str, prompt: str, variants: dict, tone_selected: str = "warm", flyer_url: str = "") -> bool:
     """Save generated campaign to DB."""
     try:
         get_supabase().table("campaigns").insert({
             "user_phone": phone,
             "prompt": prompt,
-            "whatsapp": variants.get("whatsapp", ""),
-            "social": variants.get("social", ""),
-            "ambassador": variants.get("ambassador", ""),
+            "tone": tone_selected,
+            "professional": variants.get("professional", ""),
+            "hype": variants.get("hype", ""),
+            "sheng": variants.get("sheng", ""),
+            "sms": variants.get("sms", ""),
+            "ambassador_message": variants.get("ambassador_message", ""),
             "flyer_url": flyer_url,
         }).execute()
         return True
@@ -150,3 +153,46 @@ def get_campaign_history(phone: str) -> list:
     except Exception as e:
         print(f"Error fetching history: {e}")
         return []
+
+
+def get_ambassadors(merchant_phone: str) -> list:
+    try:
+        res = get_supabase().table("ambassadors").select("*").eq("merchant_phone", merchant_phone).order("created_at", desc=True).execute()
+        return res.data
+    except Exception as e:
+        print(f"SUPABASE ERROR (get_ambassadors): {e}")
+        return []
+
+
+def create_ambassador(merchant_phone: str, name: str, phone: str, payout_method: str = "mtn") -> dict | None:
+    try:
+        res = get_supabase().table("ambassadors").insert({
+            "merchant_phone": merchant_phone,
+            "name": name,
+            "phone": phone,
+            "payout_method": payout_method
+        }).execute()
+        return res.data[0] if res.data else None
+    except Exception as e:
+        print(f"SUPABASE ERROR (create_ambassador): {e}")
+        return None
+
+
+def create_payout(ambassador_id: str, amount: float) -> dict | None:
+    try:
+        res = get_supabase().table("payouts").insert({
+            "ambassador_id": ambassador_id,
+            "amount": amount,
+            "status": "completed"
+        }).execute()
+        
+        # Increment total_earned for the ambassador
+        ambassador = get_supabase().table("ambassadors").select("total_earned").eq("id", ambassador_id).single().execute()
+        if ambassador.data:
+            new_earned = float(ambassador.data.get("total_earned", 0.0)) + amount
+            get_supabase().table("ambassadors").update({"total_earned": new_earned}).eq("id", ambassador_id).execute()
+            
+        return res.data[0] if res.data else None
+    except Exception as e:
+        print(f"SUPABASE ERROR (create_payout): {e}")
+        return None

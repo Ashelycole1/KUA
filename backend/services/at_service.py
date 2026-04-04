@@ -6,13 +6,15 @@ AT_API_KEY  = os.getenv("AT_API_KEY", "")
 
 africastalking.initialize(AT_USERNAME, AT_API_KEY)
 _sms = africastalking.SMS
-_pay = africastalking.Payment
+_pay = getattr(africastalking, "Payment", None)
 
 
 def send_stk_push(phone: str, amount: float = 100.0) -> dict:
     """Initiate M-Pesa STK Push via Africa's Talking."""
     try:
         recipients = [{"phoneNumber": phone, "amount": f"KES {amount}"}]
+        if not _pay:
+            return {"status": "pending", "data": {"status": "mocked"}}
         response = _pay.mobile_checkout(
             product_name="KuaCredits",
             recipients=recipients,

@@ -6,17 +6,19 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY", ""))
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY", "mock_key_to_prevent_crash"))
 
 MODEL = "gemini-2.5-flash"
 IMAGEN_MODEL = "imagen-3.0-generate-001"
 
 SYSTEM_PROMPT = """You are a pan-African marketing copywriter for small mobile-first merchants.
 Generate campaign copy that feels authentic, local, and compelling for the merchant's target audience.
-Return ONLY a valid JSON object with specific keys for different channels:
-- whatsapp: High-conversion message for direct chat/SMS (Keep under 160 chars if possible).
-- social: Engaging caption for Facebook/Instagram including emojis.
-- ambassador: A warm, personalized message for a friend (Ambassador) to forward to their network.
+Return ONLY a valid JSON object with specific keys for different channels and tones:
+- professional: A formal, professional message for mature social media or business context.
+- hype: Call-to-action focused urgent deal message.
+- sheng: Localized Slang/Sheng variation highly relatable to urban youth and community.
+- sms: High-conversion direct message for WhatsApp/SMS (Keep under 160 chars if possible).
+- ambassador_message: A warm, personalized message for a friend (Ambassador) to forward.
 No markdown, no extra text — just the JSON."""
 
 
@@ -39,10 +41,12 @@ async def generate_campaign_text(
     prompt = f"""{context}
 Product/Offer: {text}
 
-Generate 3 campaign variations as JSON:
-- whatsapp: Primary high-conversion direct message.
-- social: Engaging Meta (FB/IG) caption with emojis.
-- ambassador: Friendly message for a network advocate to forward."""
+Generate 5 campaign variations as JSON:
+- professional: Formal & professional tone.
+- hype: Urgent, flash-sale tone.
+- sheng: Local street/sheng variation.
+- sms: Direct chat/SMS format.
+- ambassador_message: Friendly forwardable message."""
 
     try:
         response = client.models.generate_content(
@@ -58,9 +62,11 @@ Generate 3 campaign variations as JSON:
     except Exception as e:
         print(f"Gemini API Error: {e}")
         return {
-            "whatsapp":   f"Hey fam! Fresh stock of {text} arrived. WhatsApp 0712345678 to order! 📉",
-            "social":     f"🔥🔥 NEW ARRIVALS!! {text.upper()} just landed. Visit us today! 👟📉",
-            "ambassador": f"Guys! My friend at the shop has a crazy deal on {text}. Check it out here: kua.link/amb-thandi 🔥",
+            "professional": f"Dear valued customer, {text.capitalize()} is now available. Visit us to purchase.",
+            "hype": f"🔥🔥 FLASH DEAL!! {text.upper()} grabbing fast! Limited stock! 📉",
+            "sheng": f"Eish fam! Ile {text} imeland. Piga tizi ukuje ucheki 👊",
+            "sms": f"Hey fam! Fresh stock of {text} arrived. WhatsApp order now! 📉",
+            "ambassador_message": f"Guys! My friend at the shop has a crazy deal on {text}. Check it out here: kua.link/amb-thandi 🔥",
         }
 
 

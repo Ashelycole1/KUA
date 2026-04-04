@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Home as HomeIcon, Wand2, Send, Clock, ChevronRight, Settings, Bell, Users, Calendar, BarChart2 } from 'lucide-react'
 import WalletHeader from './WalletHeader'
 import HistoryTab from './HistoryTab'
-import SettingsTab from './SettingsTab'
+import SettingsPane from './panes/SettingsPane'
 import NotificationOverlay from './NotificationOverlay'
 import SchedulePane from './panes/SchedulePane'
 import AmbassadorsPane from './panes/AmbassadorsPane'
@@ -219,7 +219,7 @@ export default function MainApp() {
               {tab === 'schedule'    && <SchedulePane onTabChange={setTab} />}
               {tab === 'analytics'   && <AnalyticsPane />}
               {tab === 'history'     && <HistoryTab />}
-              {tab === 'settings'    && <SettingsTab />}
+              {tab === 'settings'    && <SettingsPane />}
             </motion.div>
           </AnimatePresence>
         </div>

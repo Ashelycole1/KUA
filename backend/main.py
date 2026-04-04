@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from routers import campaign, payments, auth, broadcast
+from routers import campaign, payments, auth, broadcast, ambassadors
 
 app = FastAPI(title="Kua API", version="1.0.0")
 
@@ -21,6 +21,7 @@ app.include_router(campaign.router)
 app.include_router(payments.router)
 app.include_router(auth.router)
 app.include_router(broadcast.router)
+app.include_router(ambassadors.router)
 
 
 @app.get("/health")
