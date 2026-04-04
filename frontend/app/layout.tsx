@@ -1,10 +1,15 @@
 import type { Metadata, Viewport } from 'next'
-import { Plus_Jakarta_Sans } from 'next/font/google'
+import { DM_Sans, Syne } from 'next/font/google'
 import './globals.css'
 
-const plusJakarta = Plus_Jakarta_Sans({ 
+const dmSans = DM_Sans({
   subsets: ["latin"],
-  variable: '--font-pj',
+  variable: '--font-dm-sans',
+});
+
+const syne = Syne({
+  subsets: ["latin"],
+  variable: '--font-syne',
 });
 
 export const metadata: Metadata = {
@@ -22,7 +27,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#00FFA3', // Electric Emerald
+  themeColor: '#1D9E75',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -46,8 +51,7 @@ export default function RootLayout({
           type="text/javascript"
         ></script>
       </head>
-      <body className={`${plusJakarta.variable} font-sans min-h-screen bg-background text-white`}>
-        {/* Full screen layout, letting components dictact width and scroll behavior */}
+      <body className={`${dmSans.variable} ${syne.variable} font-sans min-h-screen bg-ca text-tx`}>
         {children}
       </body>
     </html>

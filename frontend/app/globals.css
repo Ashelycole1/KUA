@@ -1,13 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --bg-base: #0B1215;
-    --text-base: #FFFFFF;
+    --bg-base: #F3F4F6;
+    --text-base: #111827;
   }
   
   * {
@@ -31,66 +29,104 @@
 }
 
 @layer components {
-  /* ── Buttons ── */
-  .btn-primary {
-    @apply w-full flex items-center justify-center gap-2.5 font-bold text-[15px]
-           rounded-kua px-4 py-4 text-[#0B1215] bg-primary
-           transition-all duration-300 active:scale-[0.98] outline-none;
-    box-shadow: 0 4px 24px -6px rgba(0, 255, 163, 0.4);
+  /* ── Typography ── */
+  .heading-sec {
+    @apply font-syne text-[15px] font-bold mb-4 text-tx;
   }
-  .btn-primary:hover {
-    @apply bg-primaryHover;
-    box-shadow: 0 6px 32px -4px rgba(0, 255, 163, 0.5);
-  }
-  .btn-primary:disabled {
-    @apply opacity-70 scale-100 cursor-not-allowed;
-    box-shadow: none;
+  .sub-text {
+    @apply text-[12px] text-mu mb-4 leading-relaxed;
   }
 
-  .btn-secondary {
-    @apply w-full flex items-center justify-center gap-2 font-semibold text-[15px]
-           rounded-kua px-4 py-4 text-textPrimary bg-card border border-border
-           transition-all duration-300 active:scale-[0.98] hover:border-borderHover outline-none;
+  /* ── Layout ── */
+  .card {
+    @apply bg-ca border border-br rounded-kualg p-4 mb-2.5 transition-colors;
   }
+  .card.hi {
+    @apply border-2 border-kGreen;
+  }
+  .card.amber {
+    @apply border-l-[3px] border-l-kAmber rounded-r-kualg rounded-l-none;
+  }
+  .card.purple {
+    @apply border-l-[3px] border-l-kPurple rounded-r-kualg rounded-l-none;
+  }
+
+  /* ── Metrics ── */
+  .met {
+    @apply bg-su rounded-kua p-3.5 text-center flex flex-col;
+  }
+  .met-n {
+    @apply font-syne text-[22px] font-bold text-kGreen block;
+  }
+  .met-l {
+    @apply text-[11px] text-mu mt-0.5;
+  }
+
+  /* ── Badges ── */
+  .badge {
+    @apply inline-block text-[10px] px-2 py-0.5 rounded-full font-medium whitespace-nowrap;
+  }
+  .badge-bg { @apply bg-kGreenLight text-kGreenMid; }
+  .badge-ba { @apply bg-kAmberLight text-kAmberDark; }
+  .badge-bp { @apply bg-kPurpleLight text-kPurpleDark; }
+  .badge-bx { @apply bg-su text-mu; }
+
+  /* ── Tags ── */
+  .tag {
+    @apply inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full font-medium;
+  }
+  .tag-live { @apply bg-kGreenLight text-kGreenMid; }
+  .tag-sched { @apply bg-kAmberLight text-kAmberDark; }
+  .tag-amb { @apply bg-kPurpleLight text-kPurpleDark; }
+
+  .dot-live { @apply w-1.5 h-1.5 rounded-full bg-kGreen inline-block; }
+  .dot-sched { @apply w-1.5 h-1.5 rounded-full bg-kAmber inline-block; }
+  .dot-amb { @apply w-1.5 h-1.5 rounded-full bg-kPurple inline-block; }
 
   /* ── Inputs ── */
   .inp {
-    @apply w-full rounded-kuasm px-4 py-3.5 text-[15px] outline-none
-           bg-card border border-border text-textPrimary transition-all duration-300;
-  }
-  .inp::placeholder {
-    @apply text-textMuted;
+    @apply w-full border border-br rounded-kua px-3 py-2.5 font-sans text-[13px] bg-su text-tx mb-2.5 outline-none transition-colors;
   }
   .inp:focus {
-    @apply border-primary ring-1 ring-primary/20 bg-[#141E24];
+    @apply border-kGreen ring-1 ring-kGreen/20;
   }
 
-  /* ── Cards & Glass ── */
-  .glass-panel {
-    @apply bg-glass-card border border-border rounded-kua backdrop-blur-3xl shadow-2xl;
+  /* ── Buttons ── */
+  .btn {
+    @apply px-4 py-2.5 rounded-kua text-[13px] font-medium font-sans transition-all border border-br outline-none active:scale-[0.98];
+  }
+  .btn-pr { @apply bg-kGreen text-white border-kGreen hover:bg-kGreenMid; }
+  .btn-gh { @apply bg-transparent text-mu hover:bg-su hover:text-tx; }
+  .btn-am { @apply bg-kAmber text-white border-kAmber; }
+  .btn-pu { @apply bg-kPurple text-white border-kPurple; }
+  .btn-fl { @apply w-full; }
+  .btn-sm { @apply px-3 py-1.5 text-[11px]; }
+
+  /* ── Pill Selectors ── */
+  .pill {
+    @apply px-3 py-1.5 rounded-full border border-br text-[11px] font-medium cursor-pointer bg-su text-mu transition-all font-sans;
+  }
+  .pill.on {
+    @apply bg-kGreenLight border-kGreen text-kGreenDark;
+  }
+  .pill-am.on { @apply bg-kAmberLight border-kAmber text-kAmberDark; }
+  .pill-pu.on { @apply bg-kPurpleLight border-kPurple text-kPurpleDark; }
+
+  /* ── Rows ── */
+  .row-item {
+    @apply flex items-center gap-3 py-2.5 border-b border-br last:border-b-0;
   }
 
-  /* ── Typography ── */
-  .heading-1 {
-    @apply text-[40px] leading-[1.1] font-bold tracking-tight text-white;
-  }
-  .heading-2 {
-    @apply text-2xl font-bold tracking-tight text-white;
-  }
-  .label-sm {
-    @apply text-[11px] font-bold uppercase tracking-[0.08em] text-textMuted mb-2 block;
-  }
-
-  /* ── Spinners & Utilities ── */
+  /* ── Spinners ── */
   .spin-dark {
     @apply inline-block rounded-full w-4 h-4;
-    border: 2px solid rgba(11, 18, 21, 0.3);
-    border-top-color: #0B1215;
+    border: 2px solid rgba(17, 24, 39, 0.3);
+    border-top-color: #111827;
     animation: rot 0.7s linear infinite;
   }
   .spin-light {
     @apply inline-block rounded-full w-4 h-4;
-    border: 2px solid rgba(255, 255, 255, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.3);
     border-top-color: #FFFFFF;
     animation: rot 0.7s linear infinite;
   }
@@ -98,25 +134,4 @@
 
 @keyframes rot {
   to { transform: rotate(360deg); }
-}
-
-/* Base Toast Animation */
-.toast-bar {
-  position: fixed;
-  top: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 255, 163, 0.15);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 255, 163, 0.3);
-  color: #00FFA3;
-  border-radius: 100px;
-  padding: 10px 24px;
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-  z-index: 9999;
-  pointer-events: none;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }

@@ -1,237 +1,81 @@
 'use client'
 
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Home as HomeIcon, Wand2, Send, Clock, ChevronRight, Settings, Bell } from 'lucide-react'
-import WalletHeader from './WalletHeader'
-import CampaignStudio from './CampaignStudio'
-import BroadcastSMS from './BroadcastSMS'
-import HistoryTab from './HistoryTab'
-import SettingsTab from './SettingsTab'
-import NotificationOverlay from './NotificationOverlay'
 import { useKua } from './KuaProvider'
-import { formatCurrency } from '@/lib/currency'
-import { cn } from '@/lib/utils'
+import HomePane from './panes/HomePane'
+import CreatePane from './panes/CreatePane'
+import SchedulePane from './panes/SchedulePane'
+import AmbassadorsPane from './panes/AmbassadorsPane'
+import AnalyticsPane from './panes/AnalyticsPane'
+import SettingsPane from './panes/SettingsPane'
 
-type Tab = 'home' | 'studio' | 'broadcast' | 'history' | 'settings'
+type Tab = 'home' | 'create' | 'schedule' | 'ambassadors' | 'analytics' | 'settings'
 
-const NAV = [
-  { id: 'home' as Tab,      label: 'Home',      icon: HomeIcon },
-  { id: 'studio' as Tab,    label: 'Studio',    icon: Wand2 },
-  { id: 'broadcast' as Tab, label: 'Broadcast', icon: Send },
-  { id: 'history' as Tab,   label: 'History',   icon: Clock },
-  { id: 'settings' as Tab,  label: 'Settings',  icon: Settings },
+const NAV: { id: Tab, label: string }[] = [
+  { id: 'home', label: 'Home' },
+  { id: 'create', label: 'Create' },
+  { id: 'schedule', label: 'Schedule' },
+  { id: 'ambassadors', label: 'Ambassadors' },
+  { id: 'analytics', label: 'Analytics' },
+  { id: 'settings', label: 'Settings' },
 ]
 
 export default function MainApp() {
-  const { user, setUser, toast, countryData, notifications } = useKua()
+  const { user } = useKua()
   const [tab, setTab] = useState<Tab>('home')
-  const [isNotifOpen, setIsNotifOpen] = useState(false)
-
-  function handleTopUp() {
-    toast('Payment prompt sent to device…')
-    setTimeout(() => {
-      setUser({ credits: user.credits + 10 })
-      toast(`✅ 10 credits funded via ${countryData.paymentMethod}!`)
-    }, 2000)
-  }
-
-  const Sidebar = () => (
-    <div className="hidden md:flex w-64 flex-col border-r border-white/5 h-screen sticky top-0 bg-[#070b0c] p-6 z-50">
-      <div className="font-bold text-3xl tracking-tight text-white mb-2 ml-2">
-        Kua<span className="text-primary leading-none">.</span>
-      </div>
-      <div className="text-[12px] text-textMuted ml-3 font-medium mb-10 tracking-widest uppercase">
-        Marketing Engine
-      </div>
-      
-      <div className="flex flex-col gap-2 flex-1">
-        {NAV.map(n => {
-          const active = tab === n.id
-          const Icon = n.icon
-          return (
-            <button
-              key={n.id}
-              onClick={() => setTab(n.id)}
-              className={cn(
-                "flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all relative font-bold text-[14px]",
-                active ? "text-primary bg-primary/10 shadow-[inner_0_0_15px_rgba(0,255,163,0.05)] border border-primary/20" : "text-textMuted hover:text-white hover:bg-white/5"
-              )}
-            >
-              <Icon size={18} />
-              {n.label}
-              {active && <span className="absolute right-3 w-1.5 h-1.5 rounded-full bg-primary" />}
-            </button>
-          )
-        })}
-      </div>
-
-      <div className="h-[1px] bg-white/5 w-full my-6" />
-
-      <button 
-        onClick={() => setTab('settings')}
-        className={cn(
-          "flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-bold text-[14px] text-left",
-          tab === 'settings' ? "text-primary bg-primary/10 border border-primary/20" : "text-textMuted hover:text-white hover:bg-white/5"
-        )}
-      >
-        <Settings size={18} />
-        Settings
-      </button>
-    </div>
-  )
-
-  const BottomDock = () => (
-    <div className="fixed bottom-6 left-0 right-0 px-4 z-[60] md:hidden pointer-events-none">
-      <div className="bg-[#141E24]/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-1 flex justify-between shadow-[0_20px_50px_rgba(0,0,0,0.9)] pointer-events-auto max-w-[400px] mx-auto overflow-hidden">
-        {NAV.map(n => {
-          const active = tab === n.id
-          const Icon = n.icon
-          return (
-            <button
-              key={n.id}
-              onClick={() => setTab(n.id)}
-              className="relative flex-1 flex flex-col items-center gap-1 py-2.5 rounded-xl transition-colors z-10 min-w-0"
-            >
-              {active && (
-                <motion.div 
-                  layoutId="activeTabMobile"
-                  className="absolute inset-0 bg-primary/10 border border-primary/20 rounded-xl z-[-1]"
-                  transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                />
-              )}
-              <Icon size={20} className={active ? "text-primary" : "text-textMuted"} />
-              <span className={cn(
-                "text-[10px] font-semibold tracking-wide",
-                active ? "text-primary" : "text-textMuted"
-              )}>
-                {n.label}
-              </span>
-            </button>
-          )
-        })}
-      </div>
-    </div>
-  )
 
   return (
-    <div className="flex min-h-screen bg-background w-full">
-      {/* ── Left Sidebar (Desktop Only) ── */}
-      <Sidebar />
-
-      {/* ── Main Content Area ── */}
-      <div className="flex-1 flex flex-col relative w-full h-full min-h-screen pt-4 md:pt-10">
-        
-        {/* Desktop Header row mapping notifications */}
-        <div className="hidden md:flex justify-end px-12 pb-6 relative">
-          <button 
-            onClick={() => setIsNotifOpen(!isNotifOpen)}
-            className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white/5 border border-white/10 relative transition-all hover:bg-white/10"
-          >
-            <Bell size={20} className={isNotifOpen ? "text-primary" : "text-textSecondary"} />
-            {(user.credits <= 2 || notifications.length > 0) && (
-              <span className="absolute top-2.5 right-2.5 w-3 h-3 rounded-full bg-secondary border-2 border-background" />
-            )}
-          </button>
+    <div className="pb-12 bg-ca min-h-screen">
+      {/* Topbar */}
+      <div className="flex items-center justify-between py-3.5 px-5 border-b border-br bg-ca gap-3 flex-wrap sticky top-0 z-50">
+        <div className="font-syne text-[21px] font-extrabold text-kGreen tracking-[-0.5px] whitespace-nowrap">
+          KUA
         </div>
-
-        <div className="md:max-w-3xl md:mx-auto w-full px-0 md:px-12 flex flex-col flex-1 pb-32 md:pb-12">
-          
-          <WalletHeader onTopUp={handleTopUp} onNotificationClick={() => setIsNotifOpen(true)} />
-
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={tab}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              transition={{ duration: 0.3, ease: 'easeOut' }}
-              className="mt-6 px-6 md:px-0"
-            >
-              {/* ── HOME TAB ── */}
-              {tab === 'home' && (
-                <div className="flex flex-col gap-5">
-                  <div className="glass-panel p-5 flex gap-4 items-center bg-primary/5 border-primary/20">
-                    <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                      <span className="w-3.5 h-3.5 bg-primary rounded-full shadow-[0_0_15px_3px_rgba(0,255,163,0.5)]" />
-                    </div>
-                    <div>
-                      <div className="text-[15px] font-bold text-primary mb-1">Neural DNA Active</div>
-                      <div className="text-[13px] text-textSecondary leading-relaxed md:max-w-md">
-                        AI has been fully calibrated to your brand voice. All campaigns will natively sound like you.
-                      </div>
-                    </div>
-                  </div>
-
-                  {user.credits <= 2 && (
-                    <div className="glass-panel p-5 flex flex-col sm:flex-row gap-4 sm:items-center justify-between bg-secondary/5 border-secondary/20">
-                      <div className="flex-1">
-                        <div className="text-[14px] font-bold text-secondary mb-1">Low Credits Warning</div>
-                        <div className="text-[13px] text-textSecondary">
-                          Fund {formatCurrency(countryData.pricePer10, countryData)} to unlock 10 more campaigns.
-                        </div>
-                      </div>
-                      <button className="px-5 py-2.5 rounded-xl text-[13px] font-bold bg-secondary text-background hover:bg-[#ff8533] transition-colors whitespace-nowrap" onClick={handleTopUp}>
-                        Fund Wallet
-                      </button>
-                    </div>
-                  )}
-
-                  <div className="label-sm mt-4">Core Engine Navigation</div>
-                  <div className="flex flex-col gap-3">
-                    {[
-                      { n: 1, done: true,  title: 'Identity Synced', desc: 'Brand profile verified', tab: 'studio' as Tab },
-                      { n: 2, done: false, title: 'Generate Campaign', desc: 'Draft copy + AI visual flyers', tab: 'studio' as Tab },
-                      { n: 3, done: false, title: 'Broadcast Audience', desc: 'Deploy via SMS & WhatsApp', tab: 'broadcast' as Tab },
-                    ].map(s => (
-                      <button
-                        key={s.n}
-                        onClick={() => setTab(s.tab)}
-                        className="glass-panel p-5 flex items-center gap-5 text-left group hover:border-primary/40 transition-all cursor-pointer"
-                      >
-                        <div className={cn(
-                          "w-10 h-10 rounded-full flex items-center justify-center text-[13px] font-bold transition-colors",
-                          s.done ? "bg-primary text-background shadow-[0_0_15px_rgba(0,255,163,0.3)]" : 
-                          s.n === 2 ? "bg-primary/20 text-primary border border-primary/30" : 
-                          "bg-white/5 text-textMuted border border-white/10"
-                        )}>
-                          {s.done ? "✓" : s.n}
-                        </div>
-                        <div className="flex-1">
-                          <div className="text-[15px] font-bold text-white mb-1">{s.title}</div>
-                          <div className="text-[13px] text-textSecondary">{s.desc}</div>
-                        </div>
-                        <ChevronRight size={20} className="text-textMuted group-hover:text-primary transition-transform group-hover:translate-x-1" />
-                      </button>
-                    ))}
-                  </div>
-                  
-                  <button className="btn-primary mt-4 py-5" onClick={() => setTab('studio')}>
-                    Enter the Campaign Studio
-                    <Wand2 size={18} />
-                  </button>
-                  
-                  <a href="/KUA/kua-site/index.html" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 mt-2 px-4 py-3 rounded-xl border border-white/10 text-white/70 hover:text-white hover:bg-white/5 font-bold text-[14px] transition-colors w-full text-center">
-                    Explore Marketing Foundations
-                    <ChevronRight size={18} />
-                  </a>
-                </div>
-              )}
-
-              {tab === 'studio'    && <CampaignStudio />}
-              {tab === 'broadcast' && <BroadcastSMS />}
-              {tab === 'history'   && <HistoryTab />}
-              {tab === 'settings'  && <SettingsTab />}
-            </motion.div>
-          </AnimatePresence>
+        <div className="flex items-center gap-2 bg-su border border-br rounded-full px-3.5 py-1.5 text-[12px] text-mu">
+          <div className="w-2 h-2 rounded-full bg-kGreen shrink-0" />
+          {user.bizName || "General Account"}
         </div>
       </div>
 
-      {/* ── Mobile Bottom Dock (Phones Only) ── */}
-      <BottomDock />
+      {/* Sidenav (Horizontal scroll on mobile) */}
+      <div className="flex gap-[2px] py-3 px-5 border-b border-br overflow-x-auto bg-ca sticky top-[60px] z-40 hide-scrollbar">
+        {NAV.map(n => {
+          const active = tab === n.id
+          return (
+            <button
+              key={n.id}
+              onClick={() => setTab(n.id)}
+              className={`px-[15px] py-[7px] rounded-full border text-[12px] font-medium font-sans transition-all whitespace-nowrap ${
+                active 
+                  ? 'bg-kGreen text-white border-kGreen' 
+                  : 'bg-transparent text-mu border-transparent hover:bg-su hover:text-tx hover:border-br'
+              }`}
+            >
+              {n.label}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Pane Content */}
+      <div className="p-5 max-w-2xl mx-auto">
+        {tab === 'home' && <HomePane onTabChange={setTab} />}
+        {tab === 'create' && <CreatePane onTabChange={setTab} />}
+        {tab === 'schedule' && <SchedulePane onTabChange={setTab} />}
+        {tab === 'ambassadors' && <AmbassadorsPane onTabChange={setTab} />}
+        {tab === 'analytics' && <AnalyticsPane />}
+        {tab === 'settings' && <SettingsPane />}
+      </div>
       
-      {/* Global Overlays */}
-      <NotificationOverlay isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
+      <style jsx>{`
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .hide-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </div>
   )
 }
