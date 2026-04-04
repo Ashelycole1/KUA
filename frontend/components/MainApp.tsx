@@ -40,6 +40,14 @@ export default function MainApp() {
     }, 2000)
   }
 
+  function handleFundWallet() {
+    toast('Payment prompt sent to device…')
+    setTimeout(() => {
+      setUser({ balance: user.balance + 500 })
+      toast(`✅ ${formatCurrency(500, countryData)} added to your wallet!`)
+    }, 2000)
+  }
+
   const Sidebar = () => (
     <div className="hidden md:flex w-64 flex-col border-r border-white/5 h-screen sticky top-0 bg-[#070b0c] p-6 z-50">
       <div className="font-bold text-3xl tracking-tight text-white mb-2 ml-2">
@@ -160,7 +168,7 @@ export default function MainApp() {
 
         <div className="md:max-w-3xl md:mx-auto w-full px-0 md:px-12 flex flex-col flex-1 pb-32 md:pb-12">
           
-          <WalletHeader onTopUp={handleTopUp} onNotificationClick={() => setIsNotifOpen(true)} />
+          <WalletHeader onTopUp={handleTopUp} onFundWallet={handleFundWallet} onNotificationClick={() => setIsNotifOpen(true)} />
 
           <AnimatePresence mode="wait">
             <motion.div

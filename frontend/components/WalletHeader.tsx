@@ -6,10 +6,11 @@ import { formatCurrency } from '@/lib/currency'
 
 interface WalletHeaderProps {
   onTopUp?: () => void
+  onFundWallet?: () => void
   onNotificationClick?: () => void
 }
 
-export default function WalletHeader({ onTopUp, onNotificationClick }: WalletHeaderProps) {
+export default function WalletHeader({ onTopUp, onFundWallet, onNotificationClick }: WalletHeaderProps) {
   const { user, countryData } = useKua()
 
   return (
@@ -39,7 +40,10 @@ export default function WalletHeader({ onTopUp, onNotificationClick }: WalletHea
       {/* Balance + Credits cards (Side-by-side) */}
       <div className="grid grid-cols-2 gap-3 px-6 md:px-0">
         {/* Wallet Balance */}
-        <div className="glass-panel p-3.5 flex flex-col justify-center">
+        <button 
+          onClick={onFundWallet}
+          className="glass-panel p-3.5 flex flex-col justify-center text-left hover:bg-white/5 transition-colors cursor-pointer"
+        >
           <div className="flex items-center gap-1.5 mb-1 opacity-70">
             <Wallet size={12} className="text-textSecondary" />
             <span className="text-[11px] font-bold uppercase tracking-wider text-textSecondary">Wallet Balance</span>
@@ -47,7 +51,7 @@ export default function WalletHeader({ onTopUp, onNotificationClick }: WalletHea
           <div className="text-xl font-bold text-white tracking-tight">
             {formatCurrency(user.balance, countryData)}
           </div>
-        </div>
+        </button>
 
         {/* AI Credits */}
         <button
