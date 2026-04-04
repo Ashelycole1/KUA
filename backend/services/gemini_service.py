@@ -55,6 +55,7 @@ Generate 5 campaign variations as JSON:
             config=types.GenerateContentConfig(
                 system_instruction=SYSTEM_PROMPT,
                 response_mime_type="application/json",
+                http_options={"timeout": 20},
             ),
         )
         import json

@@ -38,7 +38,12 @@ async def generate_campaign(req: CampaignRequest, decoded: dict = Depends(get_cu
     clerk_id = decoded.get("sub")
     user = supabase_client.get_user_by_clerk_id(clerk_id)
     if not user:
-         raise HTTPException(status_code=401, detail="User profile not initialized. Please call /auth/login first.")
+        # Auto-create dev user if Supabase not yet configured
+        import os
+        if os.getenv("DEV_MODE", "true").lower() == "true":
+            user = supabase_client.DEV_USER
+        else:
+            raise HTTPException(status_code=401, detail="User profile not initialized. Please call /auth/login first.")
     
     phone = user["phone_number"]
     
