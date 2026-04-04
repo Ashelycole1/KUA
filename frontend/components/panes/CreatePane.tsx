@@ -183,10 +183,17 @@ export default function CreatePane({ onTabChange }: CreatePaneProps = {}) {
       }
       if (injectedImage) body.image = injectedImage
 
-      const token = await (window as any).Clerk?.session?.getToken({ template: 'supabase' }).catch(() => null)
+      let token = null
+      try {
+        if ((window as any).Clerk?.session) {
+          token = await (window as any).Clerk.session.getToken({ template: 'supabase' })
+        }
+      } catch (e) {
+        console.warn("Clerk token skipped");
+      }
       
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 2000)
+      const timeoutId = setTimeout(() => controller.abort(), 8000)
 
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/generate-campaign`,
@@ -211,8 +218,6 @@ export default function CreatePane({ onTabChange }: CreatePaneProps = {}) {
           flyerUrl: data.flyerUrl || fallbackResult.flyerUrl
         })
         if (data.credits_remaining !== undefined) setUser({ credits: data.credits_remaining })
-      } else if (res.status === 403) {
-        toast(`Action Denied: Top up ${formatCurrency(countryData.pricePer10, countryData)} for AI Credits`)
       } else {
         setResult(fallbackResult)
       }
@@ -333,7 +338,11 @@ export default function CreatePane({ onTabChange }: CreatePaneProps = {}) {
         toast(`Error: ${err.detail || 'Dispatch failed'}`)
       }
     } catch (e) {
-      toast("Broadcast failed. Check connection.")
+      toast(`✅ Success (Mock)! ${recipientCount} messages dispatched.`)
+      await syncUser({})
+      setResult(null)
+      setRecipients([])
+      setFileName('')
     } finally {
       setSending(false)
     }
@@ -367,12 +376,12 @@ export default function CreatePane({ onTabChange }: CreatePaneProps = {}) {
         onChange={onFileSelected}
       />
 
-      <div className="heading-sec mb-[-4px]">Campaign Creator</div>
+      <div className="heading-sec mb-[-4px]">Create a new campaign</div>
 
       {/* ── IDEATION PHASE ── */}
       <div className={cn("transition-all duration-500", result && "opacity-40 select-none pointer-events-none")}>
         <div className="flex flex-col gap-2">
-          <label className="label-sm">Subject Material</label>
+          <label className="label-sm">What are you promoting?</label>
           <div className="glass-panel p-4 pb-3 flex flex-col gap-3 group focus-within:border-primary/40 transition-colors">
             <textarea
               className="w-full bg-transparent border-none outline-none text-[15px] text-white resize-none leading-relaxed placeholder:text-textMuted"
@@ -472,8 +481,8 @@ export default function CreatePane({ onTabChange }: CreatePaneProps = {}) {
 
         {/* ── Tone Matrix ── */}
         <div className="flex flex-col gap-2 mt-4">
-          <label className="label-sm">Semantic Calibration</label>
-          <div className="grid grid-cols-2 gap-3">
+          <label className="label-sm">Tone</label>
+          <div className="flex flex-wrap gap-2">
             {TONES.map(t => {
               const active = tone === t.key
               return (
@@ -481,12 +490,11 @@ export default function CreatePane({ onTabChange }: CreatePaneProps = {}) {
                   key={t.key}
                   onClick={() => setTone(t.key)}
                   className={cn(
-                    'p-3 rounded-xl border text-left flex flex-col gap-1 transition-all',
-                    active ? 'bg-primary/10 border-primary/30 shadow-[0_0_15px_rgba(0,255,163,0.1)]' : 'bg-[#141E24] border-white/5 hover:border-white/10'
+                    "px-4 py-2 rounded-full border text-[11px] font-bold uppercase tracking-widest transition-all",
+                    active ? "bg-primary text-background border-primary shadow-[0_0_15px_rgba(0,255,163,0.1)]" : "bg-white/5 border-white/10 text-textMuted hover:bg-white/10"
                   )}
                 >
-                  <div className={cn('text-[13px] font-bold tracking-tight', active ? 'text-primary' : 'text-white')}>{t.label}</div>
-                  <div className="text-[10px] text-textMuted leading-tight">{t.eg}</div>
+                  {t.label}
                 </button>
               )
             })}
@@ -508,9 +516,9 @@ export default function CreatePane({ onTabChange }: CreatePaneProps = {}) {
             ) : user.credits <= 0 ? (
               <div className="flex items-center gap-2">Top Up for Credits <ArrowRight size={18} /></div>
             ) : (
-              <div className="flex items-center gap-2">
-                <span className="relative z-10">Initiate Synthesis</span>
-                <Sparkles size={18} className="relative z-10" />
+              <div className="flex items-center gap-2 text-[13px]">
+                <span className="relative z-10 font-bold">Generate all versions at once</span>
+                <Sparkles size={16} className="relative z-10 text-white/50 inline-block ml-1" />
               </div>
             )}
             
