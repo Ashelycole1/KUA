@@ -146,14 +146,8 @@ export default function CreatePane({ onTabChange }: CreatePaneProps = {}) {
   }
 
   // ── Generation Logic ──
-  async function generate() {
-    if (loading) return
-    if (user.credits <= 0) {
-      toast(`Action Denied: Top up ${formatCurrency(countryData.pricePer10, countryData)} via ${countryData.paymentMethod}`)
-      return
-    }
+  async function performSynthesis() {
     const text = input.trim() || 'New stock of premium sneakers'
-    setLoading(true)
     setResult(null)
 
     try {
@@ -182,7 +176,6 @@ export default function CreatePane({ onTabChange }: CreatePaneProps = {}) {
 
       if (res.ok) {
         const data = await res.json()
-        // If backend doesn't return the unified categories yet, we map from the old tones temporarily
         setResult({
           whatsapp: data.whatsapp || data.sheng || data.sms || data.hype || MOCK.whatsapp,
           social: data.social || data.hype || data.professional || MOCK.social,
@@ -192,8 +185,6 @@ export default function CreatePane({ onTabChange }: CreatePaneProps = {}) {
         if (data.credits_remaining !== undefined) setUser({ credits: data.credits_remaining })
       } else if (res.status === 403) {
         toast(`Action Denied: Top up ${formatCurrency(countryData.pricePer10, countryData)} for AI Credits`)
-        setLoading(false)
-        return
       } else {
         setResult({ ...MOCK, flyerUrl: undefined } as any)
       }
@@ -203,6 +194,25 @@ export default function CreatePane({ onTabChange }: CreatePaneProps = {}) {
 
     setLoading(false)
     toast('✨ Synthesis Complete.')
+  }
+
+  async function generate() {
+    if (loading) return
+    
+    if (user.credits <= 0) {
+      toast('Payment prompt sent to device…')
+      setLoading(true)
+      setTimeout(() => {
+        setUser({ credits: 9 }) // 10 funded minus 1 used
+        toast(`✅ 10 credits funded via ${countryData.paymentMethod}! Synthesizing...`)
+        performSynthesis()
+      }, 2000)
+      return
+    }
+
+    setLoading(true)
+    setUser({ credits: Math.max(0, user.credits - 1) }) // Deduct credit proactively for mock
+    performSynthesis()
   }
 
   // ── Audience / Broadcast Logic ──
