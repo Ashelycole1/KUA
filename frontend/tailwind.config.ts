@@ -1,6 +1,7 @@
 import type { Config } from 'tailwindcss'
 
 const config: Config = {
+  darkMode: 'class',
   content: [
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -9,33 +10,57 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        kGreen: '#1D9E75',
-        kGreenLight: '#E1F5EE',
-        kGreenDark: '#085041',
-        kGreenMid: '#0F6E56',
+        background: '#0B1215',
+        card: '#111A1F',
+        border: 'rgba(255, 255, 255, 0.08)',
+        borderHover: 'rgba(0, 255, 163, 0.3)',
+        primary: '#00FFA3', // Electric Emerald
+        primaryHover: '#00E693',
+        secondary: '#FF6B00', // Sunset Orange
+        textPrimary: '#FFFFFF',
+        textSecondary: '#8B9A9F',
+        textMuted: '#4F5E63',
+        // Accent colors for new plugins in dark mode
+        kGreen: '#00FFA3',
+        kGreenLight: 'rgba(0, 255, 163, 0.1)',
+        kGreenDark: 'rgba(0, 255, 163, 0.2)',
         kAmber: '#EF9F27',
-        kAmberLight: '#FAEEDA',
-        kAmberDark: '#633806',
-        kPurple: '#534AB7',
-        kPurpleLight: '#EEEDFE',
-        kPurpleDark: '#3C3489',
+        kAmberLight: 'rgba(239, 159, 39, 0.1)',
+        kAmberDark: '#F4B04C',
+        kPurple: '#8A82E8',
+        kPurpleLight: 'rgba(138, 130, 232, 0.1)',
+        kPurpleDark: '#A49EF0',
         kCoral: '#D85A30',
-        kCoralLight: '#FAECE7',
-        kCoralDark: '#993C1D',
-        tx: '#111827',
-        mu: '#6B7280',
-        su: '#F3F4F6',
-        ca: '#FFFFFF',
-        br: '#E5E7EB',
       },
       fontFamily: {
-        sans: ['var(--font-dm-sans)', 'sans-serif'],
-        syne: ['var(--font-syne)', 'sans-serif'],
+        sans: ['var(--font-pj)', 'sans-serif'],
       },
       borderRadius: {
-        kua: '8px',
-        kuasm: '6px',
-        kualg: '12px',
+        kua: '16px',
+        kuasm: '10px',
+      },
+      animation: {
+        'fade-in': 'fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+        'fade-up': 'fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+        'pulse-glow': 'pulseGlow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+      },
+      keyframes: {
+        fadeIn: {
+          from: { opacity: '0' },
+          to: { opacity: '1' },
+        },
+        fadeUp: {
+          from: { opacity: '0', transform: 'translateY(12px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+        pulseGlow: {
+          '0%, 100%': { opacity: '1', boxShadow: '0 0 0 0 rgba(0, 255, 163, 0)' },
+          '50%': { opacity: '0.8', boxShadow: '0 0 20px 2px rgba(0, 255, 163, 0.2)' },
+        },
+      },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+        'glass-card': 'linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%)',
       },
     },
   },
