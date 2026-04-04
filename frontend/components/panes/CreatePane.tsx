@@ -61,7 +61,7 @@ interface CreatePaneProps {
 }
 
 export default function CreatePane({ onTabChange }: CreatePaneProps = {}) {
-  const { user, setUser, toast, countryData, syncUser } = useKua()
+  const { user, setUser, toast, countryData, syncUser, addHistoryItem } = useKua()
   
   // ── Studio State ──
   const [input, setInput]               = useState('')
@@ -159,7 +159,6 @@ export default function CreatePane({ onTabChange }: CreatePaneProps = {}) {
   }
 
   // ── Generation Logic ──
-  // ── Generation Logic ──
   async function performSynthesis() {
     const p = input.trim() || 'fresh spinach R15/bunch this weekend only'
     const b = customBiz || user.bizName || "Mama Zara's Fresh Produce"
@@ -226,6 +225,14 @@ export default function CreatePane({ onTabChange }: CreatePaneProps = {}) {
       setResult(fallbackResult)
     }
 
+    // Record in universal activity history
+    addHistoryItem('campaign', {
+      prompt: p,
+      bizName: b,
+      tone,
+      language: lang,
+    })
+
     setLoading(false)
     toast('✨ Synthesis Complete.')
   }
@@ -238,6 +245,12 @@ export default function CreatePane({ onTabChange }: CreatePaneProps = {}) {
       setLoading(true)
       setTimeout(() => {
         setUser({ credits: 9 }) // 10 funded minus 1 used
+        addHistoryItem('deposit', {
+          amount: countryData.pricePer10,
+          currency: countryData.currency,
+          credits: 10,
+          gateway: countryData.paymentMethod,
+        })
         toast(`✅ 10 credits funded via ${countryData.paymentMethod}! Synthesizing...`)
         performSynthesis()
       }, 2000)

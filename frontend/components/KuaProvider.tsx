@@ -21,6 +21,8 @@ interface KuaContextType {
   syncUser: (details: Partial<User>) => Promise<void>
   notifications: any[]
   addNotification: (n: any) => void
+  activityHistory: any[]
+  addHistoryItem: (type: 'campaign' | 'deposit' | 'payout', payload: any) => void
 }
 
 const defaultUser: User = {
@@ -43,6 +45,8 @@ const KuaCtx = createContext<KuaContextType>({
   syncUser: async () => {},
   notifications: [],
   addNotification: () => {},
+  activityHistory: [],
+  addHistoryItem: () => {},
 })
 
 export function KuaProvider({ children }: { children: ReactNode }) {
@@ -51,6 +55,7 @@ export function KuaProvider({ children }: { children: ReactNode }) {
   const [toastMsg, setToastMsg] = useState('')
   const [toastVisible, setToastVisible] = useState(false)
   const [notifications, setNotifications] = useState<any[]>([])
+  const [activityHistory, setActivityHistory] = useState<any[]>([])
   const [isLoaded, setIsLoaded] = useState(false)
   const [clerkUser, setClerkUser] = useState<any>(null)
 
@@ -85,9 +90,10 @@ export function KuaProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const saved = localStorage.getItem('kua_user')
-      if (saved) {
-        setUserState((prev: User) => ({ ...prev, ...JSON.parse(saved) }))
-      }
+      if (saved) setUserState((prev: User) => ({ ...prev, ...JSON.parse(saved) }))
+      
+      const savedHistory = localStorage.getItem('kua_history')
+      if (savedHistory) setActivityHistory(JSON.parse(savedHistory))
     } catch {}
     setIsHydrated(true)
   }, [])
@@ -102,6 +108,14 @@ export function KuaProvider({ children }: { children: ReactNode }) {
 
   const addNotification = useCallback((n: any) => {
     setNotifications(prev => [{ ...n, id: Date.now(), time: 'Just now' }, ...prev].slice(0, 5))
+  }, [])
+
+  const addHistoryItem = useCallback((type: 'campaign' | 'deposit' | 'payout', payload: any) => {
+    setActivityHistory(prev => {
+      const next = [{ id: Date.now(), type, timestamp: new Date().toISOString(), payload }, ...prev]
+      localStorage.setItem('kua_history', JSON.stringify(next))
+      return next
+    })
   }, [])
 
   const syncUser = useCallback(async (details: Partial<User>) => {
@@ -143,7 +157,7 @@ export function KuaProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <KuaCtx.Provider value={{ user, setUser, isHydrated, toast, toastMsg, toastVisible, syncUser, notifications, addNotification }}>
+    <KuaCtx.Provider value={{ user, setUser, isHydrated, toast, toastMsg, toastVisible, syncUser, notifications, addNotification, activityHistory, addHistoryItem }}>
       {children}
       {/* Global toast */}
       <div
