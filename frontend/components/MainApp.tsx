@@ -4,8 +4,6 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Home as HomeIcon, Wand2, Send, Clock, ChevronRight, Settings, Bell, Users, Calendar, BarChart2 } from 'lucide-react'
 import WalletHeader from './WalletHeader'
-import CampaignStudio from './CampaignStudio'
-import BroadcastSMS from './BroadcastSMS'
 import HistoryTab from './HistoryTab'
 import SettingsTab from './SettingsTab'
 import NotificationOverlay from './NotificationOverlay'
@@ -13,16 +11,16 @@ import SchedulePane from './panes/SchedulePane'
 import AmbassadorsPane from './panes/AmbassadorsPane'
 import AnalyticsPane from './panes/AnalyticsPane'
 import HomePane from './panes/HomePane'
+import CreatePane from './panes/CreatePane'
 import { useKua } from './KuaProvider'
 import { formatCurrency } from '@/lib/currency'
 import { cn } from '@/lib/utils'
 
-type Tab = 'home' | 'studio' | 'broadcast' | 'ambassadors' | 'schedule' | 'analytics' | 'history' | 'settings'
+type Tab = 'home' | 'create' | 'ambassadors' | 'schedule' | 'analytics' | 'history' | 'settings'
 
 const NAV = [
   { id: 'home' as Tab,        label: 'Home',        icon: HomeIcon },
-  { id: 'studio' as Tab,      label: 'Studio',      icon: Wand2 },
-  { id: 'broadcast' as Tab,   label: 'Broadcast',   icon: Send },
+  { id: 'create' as Tab,      label: 'Create',      icon: Wand2 },
   { id: 'ambassadors' as Tab, label: 'Ambassadors', icon: Users },
   { id: 'schedule' as Tab,    label: 'Schedule',    icon: Calendar },
   { id: 'analytics' as Tab,   label: 'Analytics',   icon: BarChart2 },
@@ -189,8 +187,7 @@ export default function MainApp() {
                 </div>
               )}
 
-              {tab === 'studio'      && <CampaignStudio />}
-              {tab === 'broadcast'   && <BroadcastSMS />}
+              {tab === 'create'      && <CreatePane />}
               {tab === 'ambassadors' && <AmbassadorsPane onTabChange={setTab} />}
               {tab === 'schedule'    && <SchedulePane onTabChange={setTab} />}
               {tab === 'analytics'   && <AnalyticsPane />}
