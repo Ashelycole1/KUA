@@ -31,11 +31,24 @@ const LANGUAGES = [
 type ToneKey = typeof TONES[number]['key']
 type LangKey = typeof LANGUAGES[number]['key']
 
-const MOCK: Record<string, string> = {
-  whatsapp:   "Hey fam! Fresh stock arrived at the shop. Quality you can trust! WhatsApp 0712345678 to secure your pair now! 👟📉",
-  social:     "🔥🔥 NEW ARRIVALS!! Fresh kicks just landed. CRAZY discounts for the next 24 hours. Don't be left out — visit us today! 👟🔥",
-  ambassador: "Guys! My friend at the shop has a crazy deal — fresh sneakers just landed. Check it out here: kua.link/amb-thandi-apr 🔥",
-}
+const waTemplates: Record<ToneKey, (b: string, p: string) => string> = {
+  warm: (b, p) => `Hey fam! ${b} has something special for you this weekend — ${p}. Come early and tell your neighbours! We always look after our community 🙌`,
+  urgent: (b, p) => `QUICK! ${b} — ${p}. Stock is LIMITED and going FAST 🔥 Don't wait!`,
+  local: (b, p) => `Eish guys! ${b} is killing it — ${p}. Yho, straight fire neh! Tag your neighbour 👊`,
+  formal: (b, p) => `Dear valued customers. ${b} would like to inform you of a current offer: ${p}. We appreciate your continued support.`
+};
+const fbTemplates: Record<ToneKey, (b: string, p: string) => string> = {
+  warm: (b, p) => `Fresh from ${b}! 🌿 ${p} — quality you can taste, prices that make sense. Share this with your community and come see us!`,
+  urgent: (b, p) => `🚨 LIMITED TIME at ${b}! ${p} — once it's gone, it's gone. DM us or visit today!`,
+  local: (b, p) => `Weekend vibes = ${b} vibes 🎉 ${p}. Your cooking will thank you! Tag someone who needs to see this 👇`,
+  formal: (b, p) => `${b} is pleased to offer: ${p}. Visit us or place your order in advance for guaranteed stock.`
+};
+const ambTemplates: Record<ToneKey, (b: string, p: string, n?: string) => string> = {
+  warm: (b, p, n) => `Hey everyone! Just want to share something from my friend at ${b} — ${p}. I've been buying from them for ages and honestly they never disappoint. Check it out 👉 kua.link/amb-${(n || 'thandi').toLowerCase().replace(/\s/g, '-')}-apr`,
+  urgent: (b, p, n) => `GUYS! My friend at ${b} has a deal on right now — ${p}. Stock is running out! Check it here 🔥 kua.link/amb-${(n || 'thandi').toLowerCase().replace(/\s/g, '-')}-apr`,
+  local: (b, p, n) => `Eish! My people at ${b} — ${p}. Yhooo don't sleep on this one neh 👊 kua.link/amb-${(n || 'thandi').toLowerCase().replace(/\s/g, '-')}-apr`,
+  formal: (b, p, n) => `Good day. I am sharing this on behalf of ${b}: ${p}. More info here: kua.link/amb-${(n || 'thandi').toLowerCase().replace(/\s/g, '-')}-apr`
+};
 
 const RECIPIENT_OPTIONS = [
   { id: 'contacts', label: 'Phone Contacts', count: 0, icon: Smartphone },
@@ -146,22 +159,35 @@ export default function CreatePane({ onTabChange }: CreatePaneProps = {}) {
   }
 
   // ── Generation Logic ──
+  // ── Generation Logic ──
   async function performSynthesis() {
-    const text = input.trim() || 'New stock of premium sneakers'
+    const p = input.trim() || 'fresh spinach R15/bunch this weekend only'
+    const b = customBiz || user.bizName || "Mama Zara's Fresh Produce"
     setResult(null)
+
+    const fallbackResult = {
+      whatsapp: (waTemplates[tone] || waTemplates.warm)(b, p),
+      social: (fbTemplates[tone] || fbTemplates.warm)(b, p),
+      ambassador: (ambTemplates[tone] || ambTemplates.warm)(b, p, 'Thandi'),
+      flyerUrl: injectedImage || undefined
+    }
 
     try {
       const body: Record<string, unknown> = {
-        text,
+        text: p,
         phone: user.phone,
-        biz_name: customBiz || user.bizName,
+        biz_name: b,
         brand_keywords: user.brandKw,
         tone: tone,
         language: lang
       }
       if (injectedImage) body.image = injectedImage
 
-      const token = await (window as any).Clerk?.session?.getToken({ template: 'supabase' })
+      const token = await (window as any).Clerk?.session?.getToken({ template: 'supabase' }).catch(() => null)
+      
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 2000)
+
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/generate-campaign`,
         { 
@@ -170,26 +196,29 @@ export default function CreatePane({ onTabChange }: CreatePaneProps = {}) {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token || ''}`
           }, 
-          body: JSON.stringify(body) 
+          body: JSON.stringify(body),
+          signal: controller.signal
         }
       )
+      clearTimeout(timeoutId)
 
       if (res.ok) {
         const data = await res.json()
         setResult({
-          whatsapp: data.whatsapp || data.sheng || data.sms || data.hype || MOCK.whatsapp,
-          social: data.social || data.hype || data.professional || MOCK.social,
-          ambassador: data.ambassador || data.sheng || MOCK.ambassador,
-          flyerUrl: data.flyerUrl
+          whatsapp: data.whatsapp || fallbackResult.whatsapp,
+          social: data.social || fallbackResult.social,
+          ambassador: data.ambassador || fallbackResult.ambassador,
+          flyerUrl: data.flyerUrl || fallbackResult.flyerUrl
         })
         if (data.credits_remaining !== undefined) setUser({ credits: data.credits_remaining })
       } else if (res.status === 403) {
         toast(`Action Denied: Top up ${formatCurrency(countryData.pricePer10, countryData)} for AI Credits`)
       } else {
-        setResult({ ...MOCK, flyerUrl: undefined } as any)
+        setResult(fallbackResult)
       }
     } catch {
-      setResult({ ...MOCK, flyerUrl: undefined } as any)
+      // AbortController or network error falls directly here to display local deterministic templates
+      setResult(fallbackResult)
     }
 
     setLoading(false)
