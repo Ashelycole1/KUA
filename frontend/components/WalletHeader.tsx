@@ -16,8 +16,14 @@ export default function WalletHeader({ onTopUp, onNotificationClick }: WalletHea
     <div className="w-full bg-background/80 backdrop-blur-xl md:bg-transparent md:backdrop-blur-none pb-5 border-b border-white/[0.04]">
       {/* Brand row - Only visible on Mobile since Desktop has a Sidebar logo */}
       <div className="flex md:hidden justify-between items-center mb-5 pt-5 px-6">
-        <div className="font-bold text-2xl tracking-tight text-white flex items-center gap-1">
-          Kua<span className="text-primary text-3xl leading-none">.</span>
+        <div className="flex flex-col">
+          <div className="font-bold text-2xl tracking-tight text-white flex items-center gap-1">
+            Kua<span className="text-primary text-3xl leading-none">.</span>
+          </div>
+          <div className="flex items-center gap-1.5 mt-0.5 opacity-80">
+             <div className="w-1 h-1 rounded-full bg-kAmber shadow-[0_0_5px_rgba(239,159,39,0.8)]" />
+             <span className="text-[9px] font-bold text-kAmberDark uppercase tracking-widest">Next Up: Mon 09:30</span>
+          </div>
         </div>
         <button 
           onClick={onNotificationClick}

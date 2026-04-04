@@ -45,8 +45,27 @@ export default function MainApp() {
       <div className="font-bold text-3xl tracking-tight text-white mb-2 ml-2">
         Kua<span className="text-primary leading-none">.</span>
       </div>
-      <div className="text-[12px] text-textMuted ml-3 font-medium mb-10 tracking-widest uppercase">
+      <div className="text-[12px] text-textMuted ml-3 font-medium mb-6 tracking-widest uppercase flex items-center gap-2">
         Marketing Engine
+        <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+      </div>
+
+      {/* Mini Schedule Indicator */}
+      <div className="mx-2 mb-8 p-3 rounded-xl bg-white/5 border border-white/10 group cursor-pointer hover:border-primary/30 transition-all" onClick={() => setTab('schedule')}>
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[10px] font-black uppercase tracking-widest text-textMuted group-hover:text-primary transition-colors">Next Sequence</span>
+          <div className="dot-sched" />
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="bg-primary/10 rounded-lg px-2 py-1 text-center shrink-0 border border-primary/20">
+            <div className="text-[8px] font-bold text-primary leading-tight">MON</div>
+            <div className="text-[13px] font-black text-white leading-tight">07</div>
+          </div>
+          <div className="min-w-0">
+            <div className="text-[12px] font-bold text-white truncate">Weekend Spinach</div>
+            <div className="text-[10px] text-textMuted truncate">09:30 · 284 nodes</div>
+          </div>
+        </div>
       </div>
       
       <div className="flex flex-col gap-2 flex-1">
