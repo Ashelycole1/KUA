@@ -43,7 +43,11 @@ const RECIPIENT_OPTIONS = [
   { id: 'manual',   label: 'Manual Entry', count: 1, icon: Users },
 ]
 
-export default function CreatePane() {
+interface CreatePaneProps {
+  onTabChange?: (tab: string) => void
+}
+
+export default function CreatePane({ onTabChange }: CreatePaneProps = {}) {
   const { user, setUser, toast, countryData, syncUser } = useKua()
   
   // ── Studio State ──
@@ -600,7 +604,29 @@ export default function CreatePane() {
               </div>
             </div>
 
-            <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-white/10 to-transparent mt-4 mb-2" />
+            <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-white/10 to-transparent mt-4 mb-4" />
+
+            {/* ── QUICK ACTIONS ── */}
+            <div className="grid grid-cols-3 gap-2 mb-6">
+              <button 
+                className="btn-primary !text-[11px] !py-2.5 shadow-[0_0_15px_rgba(0,255,163,0.1)]" 
+                onClick={() => onTabChange?.('schedule')}
+              >
+                Schedule posts
+              </button>
+              <button 
+                className="btn-secondary !text-[11px] !py-2.5 bg-kPurple/10 text-kPurple border-kPurple/30 hover:bg-kPurple/20 transition-colors" 
+                onClick={() => onTabChange?.('ambassadors')}
+              >
+                Send to ambassadors
+              </button>
+              <button 
+                className="btn-secondary !text-[11px] !py-2.5 hover:bg-white/10 transition-colors" 
+                onClick={() => { setResult(null); setInput(''); setInjectedImage(null); }}
+              >
+                Start over
+              </button>
+            </div>
 
             {/* ── TARGETING & DEPLOYMENT ── */}
             <div>

@@ -127,7 +127,7 @@ export default function SchedulePane({ onTabChange }: { onTabChange: (tab: any) 
           </div>
       </div>
       
-      <button className="btn-primary" onClick={() => onTabChange('studio')}>Launch Campaign Sequence</button>
+      <button className="btn-primary" onClick={() => onTabChange('create')}>Launch Campaign Sequence</button>
     </div>
   )
 }

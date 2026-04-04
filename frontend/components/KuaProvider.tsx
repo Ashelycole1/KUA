@@ -86,7 +86,11 @@ export function KuaProvider({ children }: { children: ReactNode }) {
     try {
       const saved = localStorage.getItem('kua_user')
       if (saved) {
-        setUserState((prev: User) => ({ ...prev, ...JSON.parse(saved) }))
+        const parsed = JSON.parse(saved)
+        if (typeof parsed.credits === 'number' && parsed.credits <= 0) {
+          parsed.credits = 100 // Reset to 100 credits so the demo works
+        }
+        setUserState((prev: User) => ({ ...prev, ...parsed }))
       }
     } catch {}
     setIsHydrated(true)

@@ -107,7 +107,7 @@ export default function MainApp() {
   const BottomDock = () => (
     <div className="fixed bottom-6 left-0 right-0 px-4 z-[60] md:hidden pointer-events-none">
       <div className="bg-[#141E24]/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-1 flex justify-between shadow-[0_20px_50px_rgba(0,0,0,0.9)] pointer-events-auto max-w-[400px] mx-auto overflow-hidden">
-        {NAV.map(n => {
+        {NAV.filter(n => n.id !== 'history').map(n => {
           const active = tab === n.id
           const Icon = n.icon
           return (
@@ -206,7 +206,7 @@ export default function MainApp() {
                 </div>
               )}
 
-              {tab === 'create'      && <CreatePane />}
+              {tab === 'create'      && <CreatePane onTabChange={(t: string) => setTab(t as Tab)} />}
               {tab === 'ambassadors' && <AmbassadorsPane onTabChange={setTab} />}
               {tab === 'schedule'    && <SchedulePane onTabChange={setTab} />}
               {tab === 'analytics'   && <AnalyticsPane />}
@@ -221,7 +221,11 @@ export default function MainApp() {
       <BottomDock />
       
       {/* Global Overlays */}
-      <NotificationOverlay isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
+      <NotificationOverlay 
+        isOpen={isNotifOpen} 
+        onClose={() => setIsNotifOpen(false)} 
+        onNavigate={(t: string) => { setTab(t as Tab); setIsNotifOpen(false); }}
+      />
     </div>
   )
 }

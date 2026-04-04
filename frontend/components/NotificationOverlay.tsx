@@ -8,9 +8,10 @@ import { cn } from '@/lib/utils'
 interface NotificationOverlayProps {
   isOpen: boolean
   onClose: () => void
+  onNavigate?: (tab: string) => void
 }
 
-export default function NotificationOverlay({ isOpen, onClose }: NotificationOverlayProps) {
+export default function NotificationOverlay({ isOpen, onClose, onNavigate }: NotificationOverlayProps) {
   const { user } = useKua()
 
   // Mock notifications based on actual state or session
@@ -59,6 +60,22 @@ export default function NotificationOverlay({ isOpen, onClose }: NotificationOve
               </div>
               <button onClick={onClose} className="p-1 hover:bg-white/5 rounded-lg transition-colors">
                 <X size={16} className="text-textMuted" />
+              </button>
+            </div>
+
+            {/* Mobile Navigation Shortcuts */}
+            <div className="flex bg-white/[0.01] border-b border-white/5 p-2 gap-2">
+              <button 
+                onClick={() => onNavigate?.('history')}
+                className="flex-1 flex justify-center py-2 rounded-lg bg-white/5 hover:bg-white/10 text-[11px] font-bold text-white uppercase tracking-widest transition-colors"
+                >
+                History
+              </button>
+              <button 
+                onClick={() => onNavigate?.('settings')}
+                className="flex-1 flex justify-center py-2 rounded-lg bg-white/5 hover:bg-white/10 text-[11px] font-bold text-white uppercase tracking-widest transition-colors"
+                >
+                Settings
               </button>
             </div>
 

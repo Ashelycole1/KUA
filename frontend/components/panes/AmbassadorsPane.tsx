@@ -92,7 +92,7 @@ export default function AmbassadorsPane({ onTabChange }: { onTabChange: (tab: an
       )}
 
       <div className="flex gap-3 mt-6 mb-6">
-        <button className="btn-primary" onClick={() => onTabChange('studio')}>Draft Ambassador Push</button>
+        <button className="btn-primary" onClick={() => onTabChange('create')}>Draft Ambassador Push</button>
         <button className="btn-secondary whitespace-nowrap" onClick={() => setShowInvite(!showInvite)}>+ Add Node</button>
       </div>
 
