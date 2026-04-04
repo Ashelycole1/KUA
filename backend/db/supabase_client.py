@@ -116,9 +116,9 @@ def upsert_user(clerk_id: str, phone: str, currency_code: str = 'KES') -> dict:
 
         # Create new user
         res = get_supabase().table("users").insert(
-            {"clerk_id": clerk_id, "phone_number": phone, "credit_balance": 3, "balance": 0.0, "currency_code": currency_code}
+            {"clerk_id": clerk_id, "phone_number": phone, "credit_balance": 100, "balance": 0.0, "currency_code": currency_code}
         ).execute()
-        return res.data[0] if res.data else {"clerk_id": clerk_id, "phone_number": phone, "credit_balance": 3, "balance": 0.0, "currency_code": currency_code}
+        return res.data[0] if res.data else {"clerk_id": clerk_id, "phone_number": phone, "credit_balance": 100, "balance": 0.0, "currency_code": currency_code}
         
     except Exception as e:
         print(f"SUPABASE ERROR (upsert_user): {e}")
@@ -131,10 +131,9 @@ def save_campaign(phone: str, prompt: str, variants: dict, flyer_url: str = "") 
         get_supabase().table("campaigns").insert({
             "user_phone": phone,
             "prompt": prompt,
-            "professional": variants.get("professional", ""),
-            "hype": variants.get("hype", ""),
-            "sheng": variants.get("sheng", ""),
-            "sms": variants.get("sms", ""),
+            "whatsapp": variants.get("whatsapp", ""),
+            "social": variants.get("social", ""),
+            "ambassador": variants.get("ambassador", ""),
             "flyer_url": flyer_url,
         }).execute()
         return True

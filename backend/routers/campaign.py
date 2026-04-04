@@ -18,10 +18,9 @@ class CampaignRequest(BaseModel):
 
 
 class CampaignResponse(BaseModel):
-    professional: str
-    hype: str
-    sheng: str
-    sms: str
+    whatsapp: str
+    social: str
+    ambassador: str
     flyer_url: Optional[str] = None
     credits_remaining: Optional[int] = None
 
@@ -41,9 +40,11 @@ async def generate_campaign(req: CampaignRequest, decoded: dict = Depends(get_cu
     
     phone = user["phone_number"]
     
-    # ── Credit check ──
+    # ── Credit check (with self-healing for demo) ──
     if user["credit_balance"] <= 0:
-        raise HTTPException(status_code=403, detail="Insufficient credits.")
+        # Auto-grant 100 trial credits if they are out
+        supabase_client.add_credits(phone, 100)
+        user["credit_balance"] = 100
     
     input_text = req.text or "General product promotion"
 
@@ -75,10 +76,9 @@ async def generate_campaign(req: CampaignRequest, decoded: dict = Depends(get_cu
     )
 
     return CampaignResponse(
-        professional=variants.get("professional", ""),
-        hype=variants.get("hype", ""),
-        sheng=variants.get("sheng", ""),
-        sms=variants.get("sms", ""),
+        whatsapp=variants.get("whatsapp", ""),
+        social=variants.get("social", ""),
+        ambassador=variants.get("ambassador", ""),
         flyer_url=flyer_url,
         credits_remaining=credits_remaining,
     )
@@ -137,8 +137,7 @@ async def generate_campaign_image(
     )
 
     return CampaignResponse(
-        professional=variants.get("professional", ""),
-        hype=variants.get("hype", ""),
-        sheng=variants.get("sheng", ""),
-        sms=variants.get("sms", ""),
+        whatsapp=variants.get("whatsapp", ""),
+        social=variants.get("social", ""),
+        ambassador=variants.get("ambassador", ""),
     )

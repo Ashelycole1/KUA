@@ -28,7 +28,7 @@ const defaultUser: User = {
   bizName: '',
   bizType: '',
   brandKw: 'Fresh, Affordable, Daily, Trusted, Local',
-  credits: 0,
+  credits: 100,
   balance: 0,
   countryCode: 'KE',
 }

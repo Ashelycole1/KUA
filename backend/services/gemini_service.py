@@ -13,9 +13,10 @@ IMAGEN_MODEL = "imagen-3.0-generate-001"
 
 SYSTEM_PROMPT = """You are a pan-African marketing copywriter for small mobile-first merchants.
 Generate campaign copy that feels authentic, local, and compelling for the merchant's target audience.
-For the local/street tone (key: sheng), flexibly adapt your syntax and slang to match the merchant's location/Business DNA organically (e.g. Sheng in Kenya, Pidgin in Nigeria or Ghana, local vernacular elsewhere).
-Keep SMS under 160 characters.
-Return ONLY a valid JSON object with keys: professional, hype, sheng, sms.
+Return ONLY a valid JSON object with specific keys for different channels:
+- whatsapp: High-conversion message for direct chat/SMS (Keep under 160 chars if possible).
+- social: Engaging caption for Facebook/Instagram including emojis.
+- ambassador: A warm, personalized message for a friend (Ambassador) to forward to their network.
 No markdown, no extra text — just the JSON."""
 
 
@@ -38,11 +39,10 @@ async def generate_campaign_text(
     prompt = f"""{context}
 Product/Offer: {text}
 
-Generate 4 campaign variations as JSON:
-- professional: formal, trust-building tone
-- hype: exciting, urgent, emoji-friendly
-- sheng: Kenyan local slang, warm and relatable
-- sms: under 160 chars, direct call-to-action"""
+Generate 3 campaign variations as JSON:
+- whatsapp: Primary high-conversion direct message.
+- social: Engaging Meta (FB/IG) caption with emojis.
+- ambassador: Friendly message for a network advocate to forward."""
 
     try:
         response = client.models.generate_content(
@@ -58,10 +58,9 @@ Generate 4 campaign variations as JSON:
     except Exception as e:
         print(f"Gemini API Error: {e}")
         return {
-            "professional": f"We are pleased to offer {text}. Contact us today for orders.",
-            "hype": f"🔥 {text.upper()}!! Don't miss out — limited stock! Call NOW!",
-            "sheng": f"Good news! {text}. Top quality, great prices! Hurry while stocks last!",
-            "sms": f"{text[:120]}. Call now!",
+            "whatsapp":   f"Hey fam! Fresh stock of {text} arrived. WhatsApp 0712345678 to order! 📉",
+            "social":     f"🔥🔥 NEW ARRIVALS!! {text.upper()} just landed. Visit us today! 👟📉",
+            "ambassador": f"Guys! My friend at the shop has a crazy deal on {text}. Check it out here: kua.link/amb-thandi 🔥",
         }
 
 
