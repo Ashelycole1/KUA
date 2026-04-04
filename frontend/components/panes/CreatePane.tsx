@@ -109,7 +109,7 @@ export default function CreatePane({ onTabChange }: CreatePaneProps = {}) {
     try {
       const token = await (window as any).Clerk?.session?.getToken({ template: 'supabase' })
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/ocr-image`,
+        `${process.env.NEXT_PUBLIC_API_URL}/ocr-image`,
         {
           method: 'POST',
           headers: { 
@@ -195,7 +195,7 @@ export default function CreatePane({ onTabChange }: CreatePaneProps = {}) {
       const timeoutId = setTimeout(() => controller.abort(), 8000)
 
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/generate-campaign`,
+        `${process.env.NEXT_PUBLIC_API_URL}/generate-campaign`,
         { 
           method: 'POST', 
           headers: { 
@@ -328,7 +328,7 @@ export default function CreatePane({ onTabChange }: CreatePaneProps = {}) {
     setSending(true)
     try {
       const token = await (window as any).Clerk?.session?.getToken({ template: 'supabase' })
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/broadcast/send`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/broadcast/send`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

@@ -61,7 +61,7 @@ export function KuaProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const checkClerk = setInterval(() => {
-      if (window.Clerk && window.Clerk.isReady()) {
+      if (window.Clerk && (window.Clerk as any).loaded) {
         clearInterval(checkClerk)
         setIsLoaded(true)
         setClerkUser(window.Clerk.user)
@@ -123,7 +123,7 @@ export function KuaProvider({ children }: { children: ReactNode }) {
 
     try {
       const token = await window.Clerk.session?.getToken({ template: 'supabase' })
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/auth/login`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

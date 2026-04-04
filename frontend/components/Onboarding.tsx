@@ -89,7 +89,7 @@ export default function Onboarding({ onComplete }: OnboardProps) {
     
     try {
       const token = await (window as any).Clerk?.session?.getToken({ template: 'supabase' })
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/momo/initiate`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/momo/initiate`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
