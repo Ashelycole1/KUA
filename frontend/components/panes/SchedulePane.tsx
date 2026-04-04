@@ -33,9 +33,20 @@ export default function SchedulePane({ onTabChange }: { onTabChange: (tab: any) 
   const { toast } = useKua()
 
   const [currentDate,  setCurrentDate]  = useState(new Date())
-  const [events,       setEvents]       = useState<ScheduledEvent[]>(seedEvents())
+  const [events,       setEvents]       = useState<ScheduledEvent[]>(() => {
+    try {
+      const saved = localStorage.getItem('kua_schedule')
+      if (saved) return JSON.parse(saved) as ScheduledEvent[]
+    } catch {}
+    return seedEvents()
+  })
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [showForm,     setShowForm]     = useState(false)
+
+  // Persist events to localStorage on every change
+  React.useEffect(() => {
+    try { localStorage.setItem('kua_schedule', JSON.stringify(events)) } catch {}
+  }, [events])
 
   // Form state
   const [formTitle,   setFormTitle]   = useState('')

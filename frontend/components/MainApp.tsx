@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Home as HomeIcon, Wand2, Send, Clock, ChevronRight, Settings, Bell, Users, Calendar, BarChart2 } from 'lucide-react'
 import WalletHeader from './WalletHeader'
@@ -31,6 +31,23 @@ export default function MainApp() {
   const { user, setUser, toast, countryData, notifications, addHistoryItem } = useKua()
   const [tab, setTab] = useState<Tab>('home')
   const [isNotifOpen, setIsNotifOpen] = useState(false)
+  const [scheduleEvents, setScheduleEvents] = useState<any[]>([])
+
+  // Stay in sync with schedule localStorage whenever tab changes
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('kua_schedule')
+      if (saved) setScheduleEvents(JSON.parse(saved))
+    } catch {}
+  }, [tab])
+
+  // Next upcoming event
+  const todayStr  = new Date().toISOString().split('T')[0]
+  const nextEvent = useMemo(() => {
+    return scheduleEvents
+      .filter(e => e.date >= todayStr)
+      .sort((a: any, b: any) => (a.date + a.time).localeCompare(b.date + b.time))[0] || null
+  }, [scheduleEvents, todayStr])
 
   function handleTopUp() {
     toast('Payment prompt sent to device…')
@@ -77,16 +94,24 @@ export default function MainApp() {
           <span className="text-[10px] font-black uppercase tracking-widest text-textMuted group-hover:text-primary transition-colors">Next Sequence</span>
           <div className="dot-sched" />
         </div>
-        <div className="flex items-center gap-3">
-          <div className="bg-primary/10 rounded-lg px-2 py-1 text-center shrink-0 border border-primary/20">
-            <div className="text-[8px] font-bold text-primary leading-tight">MON</div>
-            <div className="text-[13px] font-black text-white leading-tight">07</div>
+        {nextEvent ? (
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 rounded-lg px-2 py-1 text-center shrink-0 border border-primary/20">
+              <div className="text-[8px] font-bold text-primary leading-tight">
+                {new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(new Date(nextEvent.date + 'T00:00:00')).toUpperCase()}
+              </div>
+              <div className="text-[13px] font-black text-white leading-tight">
+                {String(new Date(nextEvent.date + 'T00:00:00').getDate()).padStart(2, '0')}
+              </div>
+            </div>
+            <div className="min-w-0">
+              <div className="text-[12px] font-bold text-white truncate">{nextEvent.title}</div>
+              <div className="text-[10px] text-textMuted truncate">{nextEvent.time} · {nextEvent.channel}</div>
+            </div>
           </div>
-          <div className="min-w-0">
-            <div className="text-[12px] font-bold text-white truncate">Weekend Spinach</div>
-            <div className="text-[10px] text-textMuted truncate">09:30 · 284 nodes</div>
-          </div>
-        </div>
+        ) : (
+          <div className="text-[11px] text-textMuted italic">No campaigns scheduled yet.</div>
+        )}
       </div>
       
       <div className="flex flex-col gap-2 flex-1">
