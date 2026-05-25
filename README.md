@@ -66,3 +66,8 @@ Create a public storage bucket named `kua-flyers` in Supabase for holding the ge
 ## Note on Development
 
 Currently, the Next.js frontend uses mock data and simulated AI loading states in `CampaignStudio.tsx` to provide immediate feedback during UI development if the backend API isn't fully configured with keys. It attempts to call the backend and falls back to mock responses if it fails.
+
+
+Developed by
+
+&copy; 2026 [RENOA](https://www.linkedin.com/company/renoa-collective/). All rights reserved.
