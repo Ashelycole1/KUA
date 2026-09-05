@@ -1,4 +1,35 @@
 services:
+  # ── Go Backend (new) ──────────────────────────────────────────────────────────
+  - type: web
+    name: kua-backend-go
+    env: go
+    rootDir: backend-go
+    buildCommand: "go build -o kua-api ./main.go"
+    startCommand: "./kua-api"
+    envVars:
+      - key: GO_VERSION
+        value: 1.22.5
+      - key: FRONTEND_URL
+        value: "https://ashelycole1.github.io/KUA"
+      # The following sensitive keys MUST be inputted manually in the Render Dashboard
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: AT_API_KEY
+        sync: false
+      - key: AT_USERNAME
+        sync: false
+      - key: CLERK_JWT_KEY
+        sync: false
+      - key: GOOGLE_CLOUD_PROJECT
+        sync: false
+      - key: DOCAI_PROCESSOR_ID
+        sync: false
+
+  # ── Python Backend (original — keep until Go is fully verified) ───────────────
   - type: web
     name: kua-backend
     env: python
@@ -10,7 +41,6 @@ services:
         value: 3.11.0
       - key: FRONTEND_URL
         value: "https://ashelycole1.github.io/KUA"
-      # The following sensitive keys MUST be inputted manually in the Render Dashboard
       - key: GEMINI_API_KEY
         sync: false
       - key: SUPABASE_URL
